@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CommandBasedPrincipalResolver.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Amazon EMR User Role Mapper Application</a> &gt; <a href="index.source.html" class="el_package">com.amazon.aws.emr.common.system.impl</a> &gt; <span class="el_source">CommandBasedPrincipalResolver.java</span></div><h1>CommandBasedPrincipalResolver.java</h1><pre class="source lang-java linenums">// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+
+package com.amazon.aws.emr.common.system.impl;
+
+import com.google.common.annotations.VisibleForTesting;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+/**
+ * Uses linux commands to gather user and group information.
+ */
+<span class="nc" id="L24">@Slf4j</span>
+<span class="nc" id="L25">@NoArgsConstructor</span>
+public class CommandBasedPrincipalResolver extends AbstractPrincipalResolver {
+
+    @VisibleForTesting
+    CommandBasedPrincipalResolver(Integer groupMapTtl, TimeUnit timeUnit) {
+<span class="nc" id="L30">        super(groupMapTtl, timeUnit);</span>
+<span class="nc" id="L31">    }</span>
+
+    @Override
+    @VisibleForTesting
+    protected Optional&lt;String&gt; getLinuxUsername(int uid) {
+<span class="nc" id="L36">        List&lt;String&gt; getUsernameCommand = Arrays.asList(&quot;id&quot;, &quot;-nu&quot;, String.valueOf(uid));</span>
+
+<span class="nc" id="L38">        log.debug(&quot;Finding username for uid: {}&quot;, uid);</span>
+<span class="nc" id="L39">        List&lt;String&gt; getUsernameOutput = runCommand(getUsernameCommand);</span>
+<span class="nc" id="L40">        return getUsernameOutput.stream().findFirst();</span>
+    }
+
+    @Override
+    @VisibleForTesting
+    protected List&lt;String&gt; getLinuxGroups(String username) {
+<span class="nc" id="L46">        List&lt;String&gt; getGroupsCommand = Arrays.asList(&quot;id&quot;, &quot;-Gn&quot;, username);</span>
+
+<span class="nc" id="L48">        log.debug(&quot;Finding groups for user: {}&quot;, username);</span>
+<span class="nc" id="L49">        return runCommand(getGroupsCommand);</span>
+    }
+
+    /**
+     * Returns the command output delimited by space
+     * In case of any error such as a non zero return code from subprocess, exception etc
+     * returns an empty list.
+     */
+    protected List&lt;String&gt; runCommand(List&lt;String&gt; command) {
+<span class="nc" id="L58">        List&lt;String&gt; commandOutput = new ArrayList&lt;&gt;();</span>
+
+        try {
+<span class="nc" id="L61">            Process process = new ProcessBuilder(command).start();</span>
+
+<span class="nc bnc" id="L63" title="All 2 branches missed.">            if (!process.waitFor(3, TimeUnit.SECONDS)) {</span>
+<span class="nc" id="L64">                log.error(&quot;Command didn't finish: {}&quot;, command);</span>
+<span class="nc" id="L65">                process.destroyForcibly();</span>
+<span class="nc" id="L66">                return commandOutput;</span>
+            }
+
+<span class="nc" id="L69">            try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {</span>
+<span class="nc" id="L70">                return br.lines().flatMap(Pattern.compile(&quot;\\s+&quot;)::splitAsStream).collect(Collectors.toList());</span>
+            }
+<span class="nc" id="L72">        } catch (IOException | InterruptedException ie) {</span>
+<span class="nc" id="L73">            log.error(&quot;Couldn't run command to retrieve user/ groups: {}&quot;, command, ie);</span>
+        }
+
+<span class="nc" id="L76">        return commandOutput;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

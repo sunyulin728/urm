@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MetadataController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Amazon EMR User Role Mapper Application</a> &gt; <a href="index.source.html" class="el_package">com.amazon.aws.emr.api</a> &gt; <span class="el_source">MetadataController.java</span></div><h1>MetadataController.java</h1><pre class="source lang-java linenums">// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+
+package com.amazon.aws.emr.api;
+
+import com.amazon.aws.emr.common.system.PrincipalResolver;
+import com.amazon.aws.emr.credentials.MetadataCredentialsProvider;
+import com.amazon.aws.emr.mapping.MappingInvoker;
+import com.amazon.aws.emr.common.system.user.UserIdService;
+import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
+import com.amazonaws.util.EC2MetadataUtils;
+import com.google.gson.FieldNamingPolicy;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import lombok.extern.slf4j.Slf4j;
+import org.glassfish.jersey.process.internal.RequestScoped;
+
+import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.UriInfo;
+import java.util.Optional;
+import java.util.OptionalInt;
+
+/**
+ * REST controller that poses as IMDS to non privileged users.
+ */
+<span class="nc" id="L33">@Slf4j</span>
+@RequestScoped
+@Path(&quot;/&quot;)
+<span class="nc" id="L36">public class MetadataController {</span>
+
+    public static final String LATEST_IAM_CREDENTIALS_ROOT_PATH = &quot;/latest/meta-data/iam/security-credentials/&quot;;
+
+<span class="nc" id="L40">    private static final Gson GSON = new GsonBuilder()</span>
+<span class="nc" id="L41">            .setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE)</span>
+<span class="nc" id="L42">            .setPrettyPrinting()</span>
+<span class="nc" id="L43">            .create();</span>
+
+    @Inject
+    private MappingInvoker mappingInvoker;
+
+    @Inject
+    private PrincipalResolver principalResolver;
+
+    @Inject
+    private MetadataCredentialsProvider metadataCredentialsProvider;
+
+    @Inject
+    private UserIdService userIdService;
+
+    /**
+     * Gets credentials for a role name.
+     * Empty credentials are returned if the calling user has no mapping defined, or is unauthorized to assume the role.
+     *
+     * @param httpServletRequest the HTTP Request object
+     * @param roleName           the role name to assume
+     * @return credentials obtained by serializing {@link EC2MetadataUtils.IAMSecurityCredential}
+     */
+    @GET
+    @Path(&quot;{apiVersion}/meta-data/iam/security-credentials/{roleName}&quot;)
+    @Produces(MediaType.TEXT_PLAIN)
+    public String getUserCredentials(@Context HttpServletRequest httpServletRequest, @PathParam(&quot;roleName&quot;) String roleName) {
+<span class="nc" id="L69">        log.debug(&quot;Processing a request to get credentials for {}&quot;, roleName);</span>
+<span class="nc" id="L70">        Optional&lt;AssumeRoleRequest&gt; assumeRoleRequest = makeUserAssumeRoleRequest(httpServletRequest);</span>
+<span class="nc" id="L71">        return assumeRoleRequest</span>
+<span class="nc" id="L72">                .filter(request -&gt; roleName.equals(getRoleNameFromArn(request.getRoleArn())))</span>
+<span class="nc" id="L73">                .map(request -&gt; metadataCredentialsProvider.getUserCredentials(request))</span>
+<span class="nc" id="L74">                .map(credentials -&gt; {</span>
+<span class="nc" id="L75">                    log.debug(&quot;Done with request {}&quot;, assumeRoleRequest);</span>
+<span class="nc" id="L76">                    return GSON.toJson(credentials.get());</span>
+                })
+<span class="nc" id="L78">                .orElse(null);</span>
+    }
+
+    /**
+     * Returns the role that the user can assume.
+     * This is the call that SDK makes to determine the role to assume.
+     *
+     * @param httpServletRequest the HTTP Request object
+     * @return the role name that the caller could assume
+     */
+    @GET
+    @Path(&quot;{apiVersion}/meta-data/iam/security-credentials/&quot;)
+    @Produces(MediaType.TEXT_PLAIN)
+    public String listUserRoles(@Context HttpServletRequest httpServletRequest) {
+<span class="nc" id="L92">        log.debug(&quot;Processing a request to list roles for {}&quot;, LATEST_IAM_CREDENTIALS_ROOT_PATH);</span>
+<span class="nc" id="L93">        Optional&lt;AssumeRoleRequest&gt; assumeRoleRequest = makeUserAssumeRoleRequest(httpServletRequest);</span>
+<span class="nc" id="L94">        return assumeRoleRequest.map(request -&gt; getRoleNameFromArn(request.getRoleArn()))</span>
+<span class="nc" id="L95">                .orElse(null);</span>
+    }
+
+    private String getRoleNameFromArn(String roleArn) {
+<span class="nc" id="L99">        return roleArn.substring(roleArn.lastIndexOf(&quot;/&quot;) + 1);</span>
+    }
+
+    /**
+     * For other requests that do not match the special paths, act as a pass-through to EC2 metadata service.
+     *
+     * @param uriInfo UriInfo of the request
+     * @return the response from EC2 metadata service
+     */
+    @GET
+    @Path(&quot;{default: .*}&quot;)
+    @Produces(MediaType.TEXT_PLAIN)
+    public String defaultHandler(@Context UriInfo uriInfo) {
+<span class="nc" id="L112">        String uriPath = uriInfo.getPath();</span>
+
+<span class="nc" id="L114">        boolean isListOperation = uriPath.endsWith(&quot;/&quot;);</span>
+<span class="nc" id="L115">        log.debug(&quot;Intercepted a normal request to EC2 metadata service. The URI path is: /{}&quot;, uriPath);</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">        if (isListOperation) {</span>
+<span class="nc" id="L117">            return String.join(&quot;\n&quot;, EC2MetadataUtils.getItems(&quot;/&quot; + uriPath));</span>
+        } else {
+<span class="nc" id="L119">            return EC2MetadataUtils.getData(&quot;/&quot; + uriPath);</span>
+        }
+    }
+
+    private Optional&lt;AssumeRoleRequest&gt; makeUserAssumeRoleRequest(HttpServletRequest httpServletRequest) {
+<span class="nc" id="L124">        Optional&lt;String&gt; username = identifyCaller(httpServletRequest);</span>
+<span class="nc" id="L125">        return username.flatMap(user -&gt; mappingInvoker.map(user));</span>
+    }
+
+    private Optional&lt;String&gt; identifyCaller(HttpServletRequest httpServletRequest) {
+<span class="nc" id="L129">        OptionalInt uid = userIdService.resolveSystemUID(</span>
+<span class="nc" id="L130">                httpServletRequest.getLocalAddr(),</span>
+<span class="nc" id="L131">                httpServletRequest.getLocalPort(),</span>
+<span class="nc" id="L132">                httpServletRequest.getRemoteAddr(),</span>
+<span class="nc" id="L133">                httpServletRequest.getRemotePort());</span>
+<span class="nc bnc" id="L134" title="All 2 branches missed.">        if (uid.isPresent()) {</span>
+<span class="nc" id="L135">            Optional&lt;String&gt; username = principalResolver.getUsername(uid.getAsInt());</span>
+<span class="nc" id="L136">            log.debug(&quot;User making the call {}&quot;, username);</span>
+<span class="nc" id="L137">            return username;</span>
+        }
+<span class="nc" id="L139">        log.warn(&quot;Could not identify the caller using TCP socket info. Local addr {} &quot; +</span>
+                        &quot;local port {} remote addr {} remote port {}&quot;,
+<span class="nc" id="L141">                httpServletRequest.getLocalAddr(),</span>
+<span class="nc" id="L142">                httpServletRequest.getLocalPort(),</span>
+<span class="nc" id="L143">                httpServletRequest.getRemoteAddr(),</span>
+<span class="nc" id="L144">                httpServletRequest.getRemotePort());</span>
+<span class="nc" id="L145">        return Optional.empty();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

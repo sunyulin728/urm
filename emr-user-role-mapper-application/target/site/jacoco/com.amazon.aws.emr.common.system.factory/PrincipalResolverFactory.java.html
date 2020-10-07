@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PrincipalResolverFactory.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Amazon EMR User Role Mapper Application</a> &gt; <a href="index.source.html" class="el_package">com.amazon.aws.emr.common.system.factory</a> &gt; <span class="el_source">PrincipalResolverFactory.java</span></div><h1>PrincipalResolverFactory.java</h1><pre class="source lang-java linenums">// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+
+package com.amazon.aws.emr.common.system.factory;
+
+import com.amazon.aws.emr.ApplicationConfiguration;
+import com.amazon.aws.emr.common.Constants;
+import com.amazon.aws.emr.common.system.PrincipalResolver;
+import com.amazon.aws.emr.common.system.impl.CommandBasedPrincipalResolver;
+import com.amazon.aws.emr.common.system.impl.JniBasedPrincipalResolver;
+import lombok.extern.slf4j.Slf4j;
+import org.glassfish.hk2.api.Factory;
+
+import javax.inject.Inject;
+
+/**
+ * Factory to return principal resolver implementation depending on {@link Constants#PRINCIPAL_RESOLVER_STRATEGY_KEY}
+ * value.
+ * By default, it uses the JNI implementation to retrieve user/ groups.
+ */
+<span class="nc" id="L21">@Slf4j</span>
+<span class="nc" id="L22">public class PrincipalResolverFactory implements Factory&lt;PrincipalResolver&gt; {</span>
+    @Inject
+    private ApplicationConfiguration appConfig;
+
+    @Override
+    public PrincipalResolver provide() {
+<span class="nc" id="L28">        String principalResolverStrategy = appConfig</span>
+<span class="nc" id="L29">            .getProperty(Constants.PRINCIPAL_RESOLVER_STRATEGY_KEY, Constants.DEFAULT_PRINCIPAL_RESOLVER_STRATEGY);</span>
+
+<span class="nc" id="L31">        log.info(&quot;Using principal resolver strategy: {}&quot;, principalResolverStrategy);</span>
+<span class="nc bnc" id="L32" title="All 2 branches missed.">        if (Constants.DEFAULT_PRINCIPAL_RESOLVER_STRATEGY.equalsIgnoreCase(principalResolverStrategy))</span>
+<span class="nc" id="L33">            return new JniBasedPrincipalResolver();</span>
+
+<span class="nc" id="L35">        return new CommandBasedPrincipalResolver();</span>
+    }
+
+    @Override
+    public void dispose(PrincipalResolver instance) {
+        // noop
+<span class="nc" id="L41">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

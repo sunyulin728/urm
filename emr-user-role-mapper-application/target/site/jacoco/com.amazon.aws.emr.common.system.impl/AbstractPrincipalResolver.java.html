@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AbstractPrincipalResolver.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Amazon EMR User Role Mapper Application</a> &gt; <a href="index.source.html" class="el_package">com.amazon.aws.emr.common.system.impl</a> &gt; <span class="el_source">AbstractPrincipalResolver.java</span></div><h1>AbstractPrincipalResolver.java</h1><pre class="source lang-java linenums">// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+
+package com.amazon.aws.emr.common.system.impl;
+
+import com.amazon.aws.emr.common.system.PrincipalResolver;
+import com.amazon.aws.emr.model.User;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import lombok.extern.slf4j.Slf4j;
+
+import javax.annotation.PostConstruct;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
+
+/**
+ * Provides shared caching functionality for concrete implementations.
+ */
+<span class="nc" id="L27">@Slf4j</span>
+public abstract class AbstractPrincipalResolver implements PrincipalResolver {
+    private static final int USER_MAP_MAX_SIZE = 10000;
+    private static final String LINUX_USERS_FILE = &quot;/etc/passwd&quot;;
+
+    private static final int GROUP_MAP_MAX_SIZE = 10000;
+    private static final int DEFAULT_GROUP_MAP_EXPIRATION_MINS = 15;
+
+    private final LoadingCache&lt;Integer, Optional&lt;String&gt;&gt; userMap;
+    private final LoadingCache&lt;String, List&lt;String&gt;&gt; groupMap;
+
+    AbstractPrincipalResolver() {
+<span class="nc" id="L39">        this(DEFAULT_GROUP_MAP_EXPIRATION_MINS, TimeUnit.MINUTES);</span>
+<span class="nc" id="L40">    }</span>
+
+<span class="nc" id="L42">    AbstractPrincipalResolver(Integer groupMapTtl, TimeUnit timeUnit) {</span>
+<span class="nc" id="L43">        CacheLoader&lt;Integer, Optional&lt;String&gt;&gt; userLoader = new CacheLoader&lt;Integer, Optional&lt;String&gt;&gt;() {</span>
+            @Override
+            public Optional&lt;String&gt; load(Integer uid) {
+<span class="nc" id="L46">                return getLinuxUsername(uid);</span>
+            }
+        };
+
+<span class="nc" id="L50">        CacheLoader&lt;String, List&lt;String&gt;&gt; groupLoader = new CacheLoader&lt;String, List&lt;String&gt;&gt;() {</span>
+            @Override
+            public List&lt;String&gt; load(String username) {
+<span class="nc" id="L53">                return getLinuxGroups(username);</span>
+            }
+        };
+
+<span class="nc" id="L57">        this.userMap = CacheBuilder.newBuilder()</span>
+<span class="nc" id="L58">                                   .maximumSize(USER_MAP_MAX_SIZE)</span>
+<span class="nc" id="L59">                                   .build(userLoader);</span>
+
+<span class="nc" id="L61">        this.groupMap = CacheBuilder.newBuilder()</span>
+<span class="nc" id="L62">                                    .maximumSize(GROUP_MAP_MAX_SIZE)</span>
+<span class="nc" id="L63">                                    .expireAfterWrite(groupMapTtl, timeUnit)</span>
+<span class="nc" id="L64">                                    .build(groupLoader);</span>
+<span class="nc" id="L65">    }</span>
+
+    @PostConstruct
+    void init() {
+<span class="nc" id="L69">        log.info(&quot;Reading all OS users&quot;);</span>
+<span class="nc" id="L70">        readOSUsers();</span>
+<span class="nc" id="L71">    }</span>
+
+    /**
+     * We don't employ locks here as we never clear the mapping.
+     * User id once assigned a username by Linux is not reused even if the same username is created again.
+     * &lt;p&gt;
+     * Note the map might contain more entries if users get deleted but that should be an infrequent operation.
+     */
+    private synchronized void readOSUsers() {
+<span class="nc" id="L80">        try (Stream&lt;String&gt; stream = Files.lines(getSystemUsersFileName())) {</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">            stream.filter(s -&gt; s.charAt(0) != '#').map(User::createFromPasswdEntry)</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">                  .filter(u -&gt; !u.getShell().equals(&quot;/usr/sbin/nologin&quot;))</span>
+<span class="nc" id="L83">                  .forEach(user -&gt; userMap.put(user.getUid(), Optional.ofNullable(user.getName())));</span>
+<span class="nc" id="L84">        } catch (IOException ioe) {</span>
+<span class="nc" id="L85">            log.error(&quot;Couldn't parse system users file&quot;, ioe);</span>
+<span class="nc" id="L86">        }</span>
+<span class="nc" id="L87">    }</span>
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Optional&lt;String&gt; getUsername(int uid) {
+<span class="nc" id="L94">        return userMap.getUnchecked(uid);</span>
+    }
+
+    /**
+     * {@inheritDoc}
+     * &lt;p&gt;
+     * Uses linux command: id -Gn {username} to get groups
+     */
+    @Override
+    public Optional&lt;List&lt;String&gt;&gt; getGroups(String username) {
+<span class="nc" id="L104">        return Optional.ofNullable(groupMap.getUnchecked(username));</span>
+    }
+
+    /**
+     * Get linux username corresponding to POSIX userId
+     *
+     * @param userId
+     * @return Username wrapped in an {@code Optional}
+     */
+    protected abstract Optional&lt;String&gt; getLinuxUsername(int userId);
+
+    /**
+     * @param username
+     * @return List containing groups if mapping is found else empty
+     */
+    protected abstract List&lt;String&gt; getLinuxGroups(String username);
+
+    @VisibleForTesting
+    protected Path getSystemUsersFileName() {
+<span class="nc" id="L123">        return Paths.get(LINUX_USERS_FILE);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

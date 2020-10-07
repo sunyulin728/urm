@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DefaultUserRoleMapperImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Amazon EMR User Role Mapper Application</a> &gt; <a href="index.source.html" class="el_package">com.amazon.aws.emr.mapping</a> &gt; <span class="el_source">DefaultUserRoleMapperImpl.java</span></div><h1>DefaultUserRoleMapperImpl.java</h1><pre class="source lang-java linenums">// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+
+package com.amazon.aws.emr.mapping;
+
+import com.amazon.aws.emr.ApplicationConfiguration;
+import com.amazon.aws.emr.common.system.PrincipalResolver;
+import com.amazon.aws.emr.common.system.factory.PrincipalResolverFactory;
+import com.amazon.aws.emr.model.PrincipalRoleMapping;
+import com.amazon.aws.emr.model.PrincipalRoleMappings;
+import com.amazon.aws.emr.rolemapper.UserRoleMapperProvider;
+import com.amazonaws.AmazonClientException;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.S3ObjectInputStream;
+import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
+import com.google.gson.FieldNamingPolicy;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+
+/**
+ * Default implementation to read mapping from S3 in JSON format.
+ * The format for the JSON can be found in {@code PrincipalRoleMappings}.
+ */
+<span class="nc" id="L42">@NoArgsConstructor</span>
+<span class="nc" id="L43">@Slf4j</span>
+public class DefaultUserRoleMapperImpl implements UserRoleMapperProvider {
+
+<span class="nc" id="L46">    static final AmazonS3 s3Client = AmazonS3ClientBuilder.standard().build();</span>
+<span class="nc" id="L47">    private static final Gson GSON = new GsonBuilder()</span>
+<span class="nc" id="L48">            .setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE)</span>
+<span class="nc" id="L49">            .setPrettyPrinting()</span>
+<span class="nc" id="L50">            .create();</span>
+
+
+<span class="nc" id="L53">    private final Map&lt;String, AssumeRoleRequest&gt; userRoleMapping = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L54">    private final Map&lt;String, AssumeRoleRequest&gt; groupRoleMapping = new HashMap&lt;&gt;();</span>
+
+    private String bucketName;
+    private String key;
+    private String etag;
+    private PrincipalResolver principalResolver;
+
+<span class="nc" id="L61">    public DefaultUserRoleMapperImpl(String bucketName, String key, PrincipalResolver principalResolver) {</span>
+<span class="nc" id="L62">        this.bucketName = Objects.requireNonNull(bucketName);</span>
+
+        // TODO: We may relax this to allow null value. In case of null value, parse all keys under above bucket
+<span class="nc" id="L65">        this.key = Objects.requireNonNull(key);</span>
+<span class="nc" id="L66">        this.etag = null;</span>
+<span class="nc" id="L67">        this.principalResolver = Objects.requireNonNull(principalResolver);</span>
+<span class="nc" id="L68">    }</span>
+
+    /**
+     * Inits the mapper.
+     */
+    public void init() {
+<span class="nc" id="L74">    }</span>
+
+    /**
+     * @param username the user whose mapping we want.
+     *                 Username mapping takes precedence over group name mapping.
+     *                 If multiple group name mappings exist, then the first one is returned.
+     * @return an {@code Optional} of {@code AssumeRoleRequest}
+     */
+    public Optional&lt;AssumeRoleRequest&gt; getMapping(String username) {
+        // Consult if we have a mapping with username
+<span class="nc" id="L84">        AssumeRoleRequest assumeRoleRequest = userRoleMapping.get(username);</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">        if (assumeRoleRequest != null) {</span>
+<span class="nc" id="L86">            log.debug(&quot;Usermapping found for {} as {}&quot;, username, assumeRoleRequest);</span>
+<span class="nc" id="L87">            return Optional.of(assumeRoleRequest);</span>
+        }
+<span class="nc" id="L89">        log.debug(&quot;No user mapping found for {}. Checking with group mapping.&quot;, username);</span>
+<span class="nc" id="L90">        Optional&lt;List&lt;String&gt;&gt; groups = principalResolver.getGroups(username);</span>
+
+<span class="nc" id="L92">        return groups.orElse(Collections.emptyList()).stream()</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">                .filter(group -&gt; groupRoleMapping.get(group) != null)</span>
+<span class="nc" id="L94">                .map(group -&gt; {</span>
+<span class="nc" id="L95">                    log.debug(&quot;Mapped {} with group membership of {}&quot;, username, group);</span>
+<span class="nc" id="L96">                    return groupRoleMapping.get(group);</span>
+                })
+<span class="nc" id="L98">                .findFirst();</span>
+    }
+
+    /**
+     * Checks if the S3 source has a new mapping since the last refresh interval.
+     * If a new mapping is present then reloads mappings in a thread safe manner.
+     */
+    public void refresh() {
+<span class="nc" id="L106">        log.debug(&quot;Checking if need to load mapping again from S3 from {}/{}&quot;, bucketName, key);</span>
+<span class="nc" id="L107">        ObjectMetadata objectMetadata = s3Client.getObjectMetadata(bucketName, key);</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">        if (objectMetadata.getETag().equals(etag)) {</span>
+<span class="nc" id="L109">            log.debug(&quot;Nothing to do as current etag {} matches the last one.&quot;, objectMetadata.getETag());</span>
+        } else {
+<span class="nc" id="L111">            log.info(&quot;Seems we have new mapping - reload it.&quot;);</span>
+<span class="nc" id="L112">            readMapping();</span>
+<span class="nc" id="L113">            log.info(&quot;Done with the reload.&quot;);</span>
+        }
+<span class="nc" id="L115">    }</span>
+
+    private void readMapping() {
+<span class="nc" id="L118">        log.info(&quot;Load the mapping from S3 from {}/{}&quot;, bucketName, key);</span>
+<span class="nc" id="L119">        try (S3Object s3object = s3Client.getObject(new GetObjectRequest(</span>
+                bucketName, key))){
+<span class="nc" id="L121">            S3ObjectInputStream s3InputStream = s3object.getObjectContent();</span>
+<span class="nc" id="L122">            String jsonString = null;</span>
+            try {
+<span class="nc" id="L124">                jsonString = getS3FileAsString(s3InputStream);</span>
+<span class="nc" id="L125">            } catch (IOException e) {</span>
+<span class="nc" id="L126">                throw new RuntimeException(&quot;Could not fetch the mapping file from S3.&quot;);</span>
+<span class="nc" id="L127">            }</span>
+            // Update the ETag
+<span class="nc" id="L129">            etag = s3object.getObjectMetadata().getETag();</span>
+<span class="nc" id="L130">            populateMaps(jsonString);</span>
+<span class="nc" id="L131">        } catch (AmazonClientException ace) {</span>
+<span class="nc" id="L132">            log.error(&quot;AWS exception {}&quot;, ace.getMessage(), ace);</span>
+<span class="nc" id="L133">        } catch (IOException e) {</span>
+<span class="nc" id="L134">            log.error(&quot;Could not load mapping from S3&quot;, e);</span>
+<span class="nc" id="L135">        }</span>
+<span class="nc" id="L136">    }</span>
+
+    /**
+     * Populates the internal maps with the mapping in S3.
+     * The format for the JSON can be found in {@code PrincipalRoleMappings}.
+     *
+     * @param jsonString the S3 JSON represented as a String.
+     */
+    private void populateMaps(String jsonString) {
+<span class="nc" id="L145">        log.info(&quot;Received the following JSON {}&quot;, jsonString);</span>
+<span class="nc" id="L146">        PrincipalRoleMappings principalRoleMappings = GSON.fromJson(jsonString, PrincipalRoleMappings.class);</span>
+        // Clear the old mapping now since we found a new valid mapping!
+<span class="nc" id="L148">        userRoleMapping.clear();</span>
+<span class="nc" id="L149">        groupRoleMapping.clear();</span>
+
+<span class="nc bnc" id="L151" title="All 2 branches missed.">        for (PrincipalRoleMapping principalRoleMapping : principalRoleMappings.getPrincipalRoleMappings()) {</span>
+<span class="nc bnc" id="L152" title="All 2 branches missed.">            if (principalRoleMapping == null) {</span>
+<span class="nc" id="L153">                log.info(&quot;Invalid record!&quot;);</span>
+<span class="nc" id="L154">                continue;</span>
+            }
+<span class="nc bnc" id="L156" title="All 2 branches missed.">            String principal = principalRoleMapping.getUsername() != null ? principalRoleMapping.getUsername() :</span>
+<span class="nc" id="L157">                    principalRoleMapping.getGroupname();</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">            if (principal == null) {</span>
+<span class="nc" id="L159">                log.info(&quot;Invalid record containing no username or groupname&quot;);</span>
+<span class="nc" id="L160">                continue;</span>
+            }
+<span class="nc" id="L162">            String roleArn = principalRoleMapping.getRoleArn();</span>
+<span class="nc bnc" id="L163" title="All 2 branches missed.">            if (roleArn == null) {</span>
+<span class="nc" id="L164">                log.info(&quot;Invalid record containing no role ARN&quot;);</span>
+<span class="nc" id="L165">                continue;</span>
+            }
+<span class="nc" id="L167">            AssumeRoleRequest assumeRoleRequest = new AssumeRoleRequest()</span>
+<span class="nc" id="L168">                    .withRoleArn(principalRoleMapping.getRoleArn())</span>
+<span class="nc" id="L169">                    .withRoleSessionName(principal) // Use principal as session name</span>
+<span class="nc" id="L170">                    .withDurationSeconds(principalRoleMapping.getDurationSeconds())</span>
+<span class="nc" id="L171">                    .withPolicy(principalRoleMapping.getPolicy())</span>
+<span class="nc" id="L172">                    .withSerialNumber(principalRoleMapping.getSerialNumber())</span>
+<span class="nc" id="L173">                    .withExternalId(principalRoleMapping.getExternalId());</span>
+<span class="nc bnc" id="L174" title="All 2 branches missed.">            if (principalRoleMapping.getUsername() != null) {</span>
+<span class="nc" id="L175">                userRoleMapping.put(principal, assumeRoleRequest);</span>
+            } else {
+<span class="nc" id="L177">                groupRoleMapping.put(principal, assumeRoleRequest);</span>
+            }
+<span class="nc" id="L179">            log.info(&quot;Mapped {} to {}&quot;, principal, assumeRoleRequest);</span>
+        }
+<span class="nc" id="L181">    }</span>
+
+    private static String getS3FileAsString(InputStream is) throws IOException {
+<span class="nc bnc" id="L184" title="All 2 branches missed.">        if (is == null)</span>
+<span class="nc" id="L185">            return null;</span>
+<span class="nc" id="L186">        StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L187">        try (BufferedReader reader = new BufferedReader(</span>
+                new InputStreamReader(is, StandardCharsets.UTF_8))) {
+            String line;
+<span class="nc bnc" id="L190" title="All 2 branches missed.">            while ((line = reader.readLine()) != null) {</span>
+<span class="nc" id="L191">                sb.append(line);</span>
+            }
+<span class="nc" id="L193">            return sb.toString();</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

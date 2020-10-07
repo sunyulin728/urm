@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ApplicationConfiguration.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Amazon EMR User Role Mapper Application</a> &gt; <a href="index.source.html" class="el_package">com.amazon.aws.emr</a> &gt; <span class="el_source">ApplicationConfiguration.java</span></div><h1>ApplicationConfiguration.java</h1><pre class="source lang-java linenums">// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+
+package com.amazon.aws.emr;
+
+import com.amazon.aws.emr.common.Constants;
+import lombok.extern.slf4j.Slf4j;
+import org.glassfish.hk2.api.Immediate;
+
+import javax.annotation.PostConstruct;
+import java.io.InputStream;
+import java.util.Properties;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+/**
+ * The configuration singleton for this application.
+ */
+<span class="nc" id="L19">@Slf4j</span>
+@Immediate
+<span class="nc" id="L21">public class ApplicationConfiguration {</span>
+
+    private final static String PROPS_FILE = &quot;/user-role-mapper.properties&quot;;
+<span class="nc" id="L24">    private Properties properties = new Properties();</span>
+
+    @PostConstruct
+    public void init() {
+<span class="nc" id="L28">        try (final InputStream stream =</span>
+<span class="nc" id="L29">                     this.getClass().getResourceAsStream(PROPS_FILE)) {</span>
+<span class="nc" id="L30">            properties.load(stream);</span>
+<span class="nc bnc" id="L31" title="All 2 branches missed.">            if (!isValidConfig()) {</span>
+<span class="nc" id="L32">                throw new RuntimeException(&quot;Invalid configuration!&quot;);</span>
+            }
+<span class="nc" id="L34">            log.info(&quot;Loaded &quot; + properties.toString());</span>
+<span class="nc" id="L35">        } catch (Exception e) {</span>
+<span class="nc" id="L36">            throw new RuntimeException(&quot;Could not load properties file&quot;, e);</span>
+<span class="nc" id="L37">        }</span>
+<span class="nc" id="L38">    }</span>
+
+    private boolean isValidConfig() {
+<span class="nc" id="L41">        boolean isValid = true;</span>
+<span class="nc bnc" id="L42" title="All 2 branches missed.">        if ((getProperty(Constants.ROLE_MAPPER_CLASS, null) == null) &amp;&amp;</span>
+<span class="nc bnc" id="L43" title="All 2 branches missed.">                (getProperty(Constants.ROLE_MAPPING_S3_BUCKET, null) == null &amp;&amp;</span>
+<span class="nc bnc" id="L44" title="All 2 branches missed.">                        getProperty(Constants.ROLE_MAPPING_S3_KEY, null) == null)) {</span>
+<span class="nc" id="L45">            log.error(&quot;Both custom class name and bucket/key can't be null.&quot;);</span>
+<span class="nc" id="L46">            isValid = false;</span>
+        }
+
+<span class="nc" id="L49">        return isValid;</span>
+    }
+
+    /**
+     * @return all the property names
+     */
+    public Set&lt;String&gt; getAllPropertyNames() {
+<span class="nc" id="L56">        return properties.keySet().stream()</span>
+<span class="nc" id="L57">                .map(Object::toString)</span>
+<span class="nc" id="L58">                .collect(Collectors.toSet());</span>
+    }
+
+    /**
+     * @param propertyName a property that may not exist
+     * @param defaultValue default value if it does not exist
+     * @return value in properties or default if not present
+     */
+    public String getProperty(String propertyName, String defaultValue) {
+<span class="nc" id="L67">        return properties.getProperty(propertyName, defaultValue);</span>
+    }
+
+    /**
+     * @param propertyName a property that may not exist
+     * @param defaultValue default value if it does not exist
+     * @return value in properties or default if not present
+     */
+    public int getProperty(String propertyName, int defaultValue) {
+<span class="nc" id="L76">        return Integer.parseInt(properties.getProperty(propertyName, String.valueOf(defaultValue)));</span>
+    }
+
+    /**
+     * Set a property, overriding any previous value.
+     *
+     * @param propertyName name of property
+     * @param value        value to set
+     */
+    public void setProperty(String propertyName, String value) {
+<span class="nc" id="L86">        properties.put(propertyName, value);</span>
+<span class="nc" id="L87">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UserRoleMappingServer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Amazon EMR User Role Mapper Application</a> &gt; <a href="index.source.html" class="el_package">com.amazon.aws.emr</a> &gt; <span class="el_source">UserRoleMappingServer.java</span></div><h1>UserRoleMappingServer.java</h1><pre class="source lang-java linenums">// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+
+package com.amazon.aws.emr;
+
+import com.amazon.aws.emr.common.Constants;
+import com.amazon.aws.emr.ws.UserRoleMapperApplication;
+import lombok.extern.slf4j.Slf4j;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.glassfish.jersey.servlet.ServletContainer;
+
+/**
+ * Server that handles all user role mapping requests.
+ */
+<span class="nc" id="L19">@Slf4j</span>
+<span class="nc" id="L20">public class UserRoleMappingServer {</span>
+
+    public static void main(String[] args) {
+
+<span class="nc" id="L24">        ServletContextHandler context = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);</span>
+<span class="nc" id="L25">        context.setContextPath(&quot;/&quot;);</span>
+
+<span class="nc" id="L27">        ApplicationConfiguration applicationConfiguration = new ApplicationConfiguration();</span>
+<span class="nc" id="L28">        applicationConfiguration.init();</span>
+<span class="nc" id="L29">        int maxThreads = applicationConfiguration.getProperty(Constants.ROLE_MAPPING_MAX_THREADS, Constants.ROLE_MAPPING_DEFAULT_MAX_THREADS);</span>
+<span class="nc" id="L30">        int minThreads = applicationConfiguration.getProperty(Constants.ROLE_MAPPING_MIN_THREADS, Constants.ROLE_MAPPING_DEFAULT_MIN_THREADS);</span>
+<span class="nc" id="L31">        log.info(&quot;Starting with max {} and min {} threads&quot;, maxThreads, minThreads);</span>
+
+<span class="nc" id="L33">        QueuedThreadPool pool = new QueuedThreadPool();</span>
+<span class="nc" id="L34">        pool.setMaxThreads(maxThreads);</span>
+<span class="nc" id="L35">        pool.setMinThreads(minThreads);</span>
+<span class="nc" id="L36">        pool.setIdleTimeout(Constants.ROLE_MAPPING_DEFAULT_IDLE_TIMEOUT_MS);</span>
+<span class="nc" id="L37">        pool.setName(&quot;worker-thread&quot;);</span>
+
+<span class="nc" id="L39">        Server jettyServer = new Server(pool);</span>
+<span class="nc" id="L40">        jettyServer.setHandler(context);</span>
+
+<span class="nc" id="L42">        ServerConnector httpConnector = new ServerConnector(jettyServer);</span>
+<span class="nc" id="L43">        httpConnector.setPort(Constants.JETTY_PORT);</span>
+<span class="nc" id="L44">        jettyServer.addConnector(httpConnector);</span>
+
+<span class="nc" id="L46">        ServletHolder jerseyServlet = context.addServlet(ServletContainer.class, &quot;/*&quot;);</span>
+<span class="nc" id="L47">        jerseyServlet.setInitOrder(0);</span>
+
+        // Tells the Jersey Servlet which REST service/class to load.
+<span class="nc" id="L50">        jerseyServlet.setInitParameter(&quot;jersey.config.server.provider.packages&quot;, &quot;com.amazon.emr.api&quot;);</span>
+<span class="nc" id="L51">        jerseyServlet.setInitParameter(&quot;javax.ws.rs.Application&quot;, UserRoleMapperApplication.class.getName());</span>
+
+        try {
+<span class="nc" id="L54">            log.info(&quot;Starting the user role mapping server&quot;);</span>
+<span class="nc" id="L55">            jettyServer.start();</span>
+<span class="nc" id="L56">            jettyServer.join();</span>
+<span class="nc" id="L57">        } catch (Exception e) {</span>
+<span class="nc" id="L58">            log.error(&quot;Error in user role mapping server&quot;, e);</span>
+        } finally {
+<span class="nc" id="L60">            jettyServer.destroy();</span>
+        }
+<span class="nc" id="L62">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

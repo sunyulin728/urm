@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Group.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Amazon EMR User Role Mapper Application</a> &gt; <a href="index.source.html" class="el_package">com.amazon.aws.emr.model</a> &gt; <span class="el_source">Group.java</span></div><h1>Group.java</h1><pre class="source lang-java linenums">// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+
+package com.amazon.aws.emr.model;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Value;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * Models a POSIX group.
+ */
+<span class="fc" id="L18">@AllArgsConstructor</span>
+<span class="pc" id="L19">@Builder</span>
+<span class="pc bpc" id="L20" title="20 of 28 branches missed.">@Value</span>
+public class Group {
+
+<span class="fc" id="L23">    String name;</span>
+<span class="fc" id="L24">    Integer gid;</span>
+<span class="fc" id="L25">    List&lt;String&gt; users;</span>
+
+    public static Group createFromGroupEntry(String line) {
+<span class="fc" id="L28">        String[] items = line.split(&quot;:&quot;);</span>
+
+<span class="fc bfc" id="L30" title="All 2 branches covered.">        if (items.length &lt; 3) {</span>
+<span class="fc" id="L31">            throw new IllegalArgumentException(&quot;Need at least 3 items from file and there's only: &quot; + items.length);</span>
+        }
+
+<span class="fc" id="L34">        String name = items[0];</span>
+<span class="fc" id="L35">        int gid = Integer.parseInt(items[2]);</span>
+        // Some groups may not have any members
+<span class="pc bpc" id="L37" title="1 of 2 branches missed.">        List&lt;String&gt; users = (items.length == 4) ? Arrays.stream(items[3].split(&quot;,&quot;)).collect(Collectors.toList()) :</span>
+<span class="pc" id="L38">                new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L39">        return new Group(name, gid, users);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

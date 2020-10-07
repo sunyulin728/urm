@@ -1,0 +1,31 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+Amazon EMR User Role Mapper Application,com.amazon.aws.emr.common.system.factory,PrincipalResolverFactory,30,0,2,0,9,0,5,0,4,0
+Amazon EMR User Role Mapper Application,com.amazon.aws.emr.mapping,GroupPolicyMapperImpl,340,0,20,0,86,0,19,0,9,0
+Amazon EMR User Role Mapper Application,com.amazon.aws.emr.mapping,DefaultUserRoleMapperImpl,348,0,22,0,88,0,22,0,11,0
+Amazon EMR User Role Mapper Application,com.amazon.aws.emr.mapping,MappingInvoker,196,0,2,0,48,0,7,0,6,0
+Amazon EMR User Role Mapper Application,com.amazon.aws.emr.model,PrincipalRoleMappings,63,6,8,0,0,2,9,2,5,2
+Amazon EMR User Role Mapper Application,com.amazon.aws.emr.model,PrincipalRoleMapping,295,258,59,35,0,15,47,29,5,24
+Amazon EMR User Role Mapper Application,com.amazon.aws.emr.model,Group.GroupBuilder,22,28,0,0,0,1,1,5,1,5
+Amazon EMR User Role Mapper Application,com.amazon.aws.emr.model,User.UserBuilder,37,49,0,0,0,1,1,8,1,8
+Amazon EMR User Role Mapper Application,com.amazon.aws.emr.model,Group,92,125,21,11,0,14,17,8,2,7
+Amazon EMR User Role Mapper Application,com.amazon.aws.emr.model,User,161,195,38,16,0,21,28,12,2,11
+Amazon EMR User Role Mapper Application,com.amazon.aws.emr.model,PrincipalRoleMapping.PrincipalRoleMappingBuilder,87,59,0,0,0,1,6,8,6,8
+Amazon EMR User Role Mapper Application,com.amazon.aws.emr.ws,ImmediateFeature,7,0,0,0,4,0,2,0,2,0
+Amazon EMR User Role Mapper Application,com.amazon.aws.emr.ws,UserRoleMapperApplication,28,0,0,0,6,0,1,0,1,0
+Amazon EMR User Role Mapper Application,com.amazon.aws.emr.ws,UserRoleMapperBinder,42,0,0,0,7,0,2,0,2,0
+Amazon EMR User Role Mapper Application,com.amazon.aws.emr.common.system.user,LinuxUserIdService,45,162,5,19,12,38,6,13,1,6
+Amazon EMR User Role Mapper Application,com.amazon.aws.emr.api,RequestFilter,74,0,6,0,23,0,8,0,5,0
+Amazon EMR User Role Mapper Application,com.amazon.aws.emr.api,MetadataController,193,0,4,0,43,0,15,0,13,0
+Amazon EMR User Role Mapper Application,com.amazon.aws.emr.common.system.impl,JniBasedPrincipalResolver,133,0,12,0,32,0,11,0,5,0
+Amazon EMR User Role Mapper Application,com.amazon.aws.emr.common.system.impl,AbstractPrincipalResolver,115,0,4,0,28,0,13,0,11,0
+Amazon EMR User Role Mapper Application,com.amazon.aws.emr.common.system.impl,AbstractPrincipalResolver.new CacheLoader() {...},11,0,0,0,2,0,2,0,2,0
+Amazon EMR User Role Mapper Application,com.amazon.aws.emr.common.system.impl,AbstractPrincipalResolver.new CacheLoader() {...},12,0,0,0,2,0,2,0,2,0
+Amazon EMR User Role Mapper Application,com.amazon.aws.emr.common.system.impl,CommandBasedPrincipalResolver,122,0,2,0,22,0,7,0,6,0
+Amazon EMR User Role Mapper Application,com.amazon.aws.emr.common,Constants.Linux.Proc,3,0,0,0,1,0,1,0,1,0
+Amazon EMR User Role Mapper Application,com.amazon.aws.emr.common,Constants.Linux,3,0,0,0,1,0,1,0,1,0
+Amazon EMR User Role Mapper Application,com.amazon.aws.emr.common,Constants,9,0,0,0,3,0,1,0,1,0
+Amazon EMR User Role Mapper Application,com.amazon.aws.emr.common,Constants.Network,10,0,0,0,3,0,2,0,2,0
+Amazon EMR User Role Mapper Application,com.amazon.aws.emr.credentials,STSCredentialsProvider,195,0,8,0,52,0,13,0,9,0
+Amazon EMR User Role Mapper Application,com.amazon.aws.emr.credentials,STSCredentialsProvider.new CacheLoader() {...},11,0,0,0,2,0,2,0,2,0
+Amazon EMR User Role Mapper Application,com.amazon.aws.emr,ApplicationConfiguration,105,0,8,0,27,0,12,0,8,0
+Amazon EMR User Role Mapper Application,com.amazon.aws.emr,UserRoleMappingServer,105,0,0,0,30,0,3,0,3,0

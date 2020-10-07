@@ -1,0 +1,14 @@
+com/amazon/aws/emr/common/system/user/TestCommandBasedPrincipalResolver.class
+com/amazon/aws/emr/common/system/user/LinuxUserIdServiceTest.class
+com/amazon/aws/emr/mapping/TestUserRoleMapperImpl.class
+com/amazon/aws/emr/common/system/impl/PrincipalResolverTestBase.class
+com/amazon/aws/emr/model/PrincipalRoleMappingsTest.class
+com/amazon/aws/emr/api/MetadataControllerTest$1.class
+com/amazon/aws/emr/common/system/impl/CommandBasedPrincipalResolverTest.class
+com/amazon/aws/emr/model/UserTest.class
+com/amazon/aws/emr/model/GroupTest.class
+com/amazon/aws/emr/credentials/STSCredentialsProviderTest.class
+com/amazon/aws/emr/common/system/impl/JniBasedPrincipalResolverTest.class
+com/amazon/aws/emr/common/TestConstants.class
+com/amazon/aws/emr/api/MetadataControllerTest.class
+com/amazon/aws/emr/credentials/TestMetadataCredentialsProvider.class

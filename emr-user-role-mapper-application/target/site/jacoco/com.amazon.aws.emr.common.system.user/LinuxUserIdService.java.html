@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LinuxUserIdService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Amazon EMR User Role Mapper Application</a> &gt; <a href="index.source.html" class="el_package">com.amazon.aws.emr.common.system.user</a> &gt; <span class="el_source">LinuxUserIdService.java</span></div><h1>LinuxUserIdService.java</h1><pre class="source lang-java linenums">// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+
+package com.amazon.aws.emr.common.system.user;
+
+import com.amazon.aws.emr.common.Constants;
+import lombok.extern.slf4j.Slf4j;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.OptionalInt;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+/**
+ * Authenticates users via /proc/net/tpc(6) by searching for matching Linux UID in the file.
+ *
+ * &lt;p&gt;
+ * The requests are received here for IMDS due to iptables routing. The remote addr/port in /proc/net/tpc(6)
+ * for TCP socket will be the IMDS server and port. The local addr/port will be the callers address and port.
+ * Note that the local entry will match the HTTP socket remote addr/port. For such an entry we check for established
+ * TCP state and return back UID.
+ */
+<span class="fc" id="L27">@Slf4j</span>
+public class LinuxUserIdService implements UserIdService {
+
+    public static final int TCP_ESTABLISHED = 1;
+    /**
+     * Details on /proc/net/tpc(6) format: http://lkml.iu.edu/hypermail/linux/kernel/0409.1/2166.html
+     */
+<span class="fc" id="L34">    private static Pattern pattern = Pattern.compile(&quot;\\s*\\d+: ([0-9A-Fa-f]+):([0-9A-Fa-f]+) ([0-9A-Fa-f]+):([0-9A-Fa-f]+) ([0-9A-Fa-f]{2}) [0-9A-Fa-f]+:[0-9A-Fa-f]+ [0-9A-Fa-f]+:[0-9A-Fa-f]+ [0-9A-Fa-f]+\\s+([0-9]+).+&quot;);</span>
+
+    private final String ipV4Path;
+    private final String ipV6Path;
+
+<span class="nc" id="L39">    public LinuxUserIdService() {</span>
+<span class="nc" id="L40">        this.ipV4Path = Constants.Network.MODULE_PROC_NET_TCP_PATH;</span>
+<span class="nc" id="L41">        this.ipV6Path = Constants.Network.MODULE_PROC_NET_TCP6_PATH;</span>
+<span class="nc" id="L42">    }</span>
+
+<span class="fc" id="L44">    public LinuxUserIdService(String ipV4Path, String ipV6Path) {</span>
+<span class="fc" id="L45">        this.ipV4Path = ipV4Path;</span>
+<span class="fc" id="L46">        this.ipV6Path = ipV6Path;</span>
+<span class="fc" id="L47">    }</span>
+
+    /**
+     * Check is ip address is loopback address. Method name uses localhost since it usually means 127.0.0.1
+     *
+     * @param ipAddr
+     * @return
+     */
+    public static boolean isLocalhost(String ipAddr) {
+        try {
+<span class="fc" id="L57">            InetAddress remoteInetAddress = InetAddress.getByName(ipAddr);</span>
+<span class="fc" id="L58">            return remoteInetAddress.isLoopbackAddress();</span>
+<span class="nc" id="L59">        } catch (UnknownHostException ex) {</span>
+<span class="nc" id="L60">            throw new RuntimeException(String.format(&quot;Unexpected IP address (%s)&quot;, ipAddr));</span>
+        }
+    }
+
+    /**
+     * Resolve linux user id via linux /proc/net/tcp(6)
+     *
+     * @param localAddr
+     * @param localPort
+     * @param remoteAddr
+     * @param remotePort
+     * @return
+     */
+    public OptionalInt resolveSystemUID(String localAddr, int localPort, String remoteAddr, int remotePort) {
+
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">        if (!isLocalhost(localAddr)) {</span>
+<span class="nc" id="L76">            log.debug(&quot;Local address is not localhost on the HTTP socket!&quot;);</span>
+<span class="nc" id="L77">            return OptionalInt.empty();</span>
+        }
+
+        OptionalInt uid;
+<span class="fc" id="L81">        try (BufferedReader br = new BufferedReader(new FileReader(ipV4Path))) {</span>
+            String line;
+<span class="fc bfc" id="L83" title="All 2 branches covered.">            while ((line = br.readLine()) != null) {</span>
+<span class="fc" id="L84">                uid = getUID(line, localPort, remotePort, remoteAddr);</span>
+<span class="fc bfc" id="L85" title="All 2 branches covered.">                if (uid.isPresent()) {</span>
+<span class="fc" id="L86">                    return uid;</span>
+                }
+            }
+<span class="pc" id="L89">        } catch (IOException e) {</span>
+<span class="nc" id="L90">            log.error(&quot;Exception reading {} file. &quot;, ipV4Path, e);</span>
+            // May be this succeeds with TCP6 socket!
+<span class="fc" id="L92">        }</span>
+
+<span class="fc" id="L94">        try (BufferedReader br = new BufferedReader(new FileReader(ipV6Path))) {</span>
+            String line;
+<span class="fc bfc" id="L96" title="All 2 branches covered.">            while ((line = br.readLine()) != null) {</span>
+<span class="fc" id="L97">                uid = getUID(line, localPort, remotePort, remoteAddr);</span>
+<span class="fc bfc" id="L98" title="All 2 branches covered.">                if (uid.isPresent()) {</span>
+<span class="fc" id="L99">                    return uid;</span>
+                }
+            }
+<span class="pc" id="L102">        } catch (IOException e) {</span>
+<span class="nc" id="L103">            log.error(&quot;Exception reading {} file. &quot;, ipV6Path, e);</span>
+            // TODO: re-throw this
+<span class="fc" id="L105">        }</span>
+
+<span class="fc" id="L107">        return OptionalInt.empty();</span>
+    }
+
+    private OptionalInt getUID(String line, int reqLocalPort, int reqRemotePort, String procRemoteAddress) {
+<span class="fc" id="L111">        return getUID(</span>
+                line,
+                procRemoteAddress,
+                reqLocalPort, reqRemotePort);
+    }
+
+    private OptionalInt getUID(String line, String remoteAddr, int reqLocalPort, int reqRemotePort) {
+<span class="fc" id="L118">        Matcher matcher = pattern.matcher(line);</span>
+<span class="pc bpc" id="L119" title="1 of 2 branches missed.">        if (!matcher.matches()) {</span>
+<span class="nc" id="L120">            return OptionalInt.empty();</span>
+        }
+
+<span class="fc" id="L123">        int groupCount = matcher.groupCount();</span>
+<span class="pc bpc" id="L124" title="1 of 2 branches missed.">        if (groupCount &lt;= 5) {</span>
+<span class="nc" id="L125">            return OptionalInt.empty();</span>
+        }
+
+<span class="fc" id="L128">        long procLocalPort = Long.parseLong(matcher.group(2), 16);</span>
+<span class="fc" id="L129">        String procRemoteAddress = matcher.group(3);</span>
+<span class="fc" id="L130">        long procRemotePort = Long.parseLong(matcher.group(4), 16);</span>
+<span class="fc" id="L131">        long state = Long.parseLong(matcher.group(5), 16);</span>
+<span class="fc" id="L132">        int uid = Integer.parseInt(matcher.group(6));</span>
+        // TODO - Also check proc local address is the local ip address
+<span class="fc bfc" id="L134" title="All 2 branches covered.">        if ((procRemoteAddress.equals(Constants.Network.IPV4_IMDS_ADDR_IN_HEX_REVERSED_BYTE_ORDER) ||</span>
+<span class="pc bpc" id="L135" title="2 of 8 branches missed.">                procRemoteAddress.equals(Constants.Network.IPV6_IMDS_ADDR_IN_HEX_REVERSED_BYTE_ORDER))</span>
+                &amp;&amp; procLocalPort == reqRemotePort
+                &amp;&amp; procRemotePort == 80
+                &amp;&amp; state == TCP_ESTABLISHED
+        ) {
+<span class="fc" id="L140">            return OptionalInt.of(uid);</span>
+        }
+
+<span class="fc" id="L143">        return OptionalInt.empty();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

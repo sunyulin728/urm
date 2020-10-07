@@ -1,0 +1,13 @@
+/home/brad/project/amazon-emr-user-role-mapper/emr-user-role-mapper-application/src/test/com/amazon/aws/emr/model/UserTest.java
+/home/brad/project/amazon-emr-user-role-mapper/emr-user-role-mapper-application/src/test/com/amazon/aws/emr/common/system/impl/CommandBasedPrincipalResolverTest.java
+/home/brad/project/amazon-emr-user-role-mapper/emr-user-role-mapper-application/src/test/com/amazon/aws/emr/credentials/TestMetadataCredentialsProvider.java
+/home/brad/project/amazon-emr-user-role-mapper/emr-user-role-mapper-application/src/test/com/amazon/aws/emr/common/system/user/TestCommandBasedPrincipalResolver.java
+/home/brad/project/amazon-emr-user-role-mapper/emr-user-role-mapper-application/src/test/com/amazon/aws/emr/common/system/user/LinuxUserIdServiceTest.java
+/home/brad/project/amazon-emr-user-role-mapper/emr-user-role-mapper-application/src/test/com/amazon/aws/emr/mapping/TestUserRoleMapperImpl.java
+/home/brad/project/amazon-emr-user-role-mapper/emr-user-role-mapper-application/src/test/com/amazon/aws/emr/model/GroupTest.java
+/home/brad/project/amazon-emr-user-role-mapper/emr-user-role-mapper-application/src/test/com/amazon/aws/emr/api/MetadataControllerTest.java
+/home/brad/project/amazon-emr-user-role-mapper/emr-user-role-mapper-application/src/test/com/amazon/aws/emr/common/system/impl/JniBasedPrincipalResolverTest.java
+/home/brad/project/amazon-emr-user-role-mapper/emr-user-role-mapper-application/src/test/com/amazon/aws/emr/common/TestConstants.java
+/home/brad/project/amazon-emr-user-role-mapper/emr-user-role-mapper-application/src/test/com/amazon/aws/emr/common/system/impl/PrincipalResolverTestBase.java
+/home/brad/project/amazon-emr-user-role-mapper/emr-user-role-mapper-application/src/test/com/amazon/aws/emr/credentials/STSCredentialsProviderTest.java
+/home/brad/project/amazon-emr-user-role-mapper/emr-user-role-mapper-application/src/test/com/amazon/aws/emr/model/PrincipalRoleMappingsTest.java

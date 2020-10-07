@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Constants.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Amazon EMR User Role Mapper Application</a> &gt; <a href="index.source.html" class="el_package">com.amazon.aws.emr.common</a> &gt; <span class="el_source">Constants.java</span></div><h1>Constants.java</h1><pre class="source lang-java linenums">// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+
+package com.amazon.aws.emr.common;
+
+import com.amazon.aws.emr.mapping.DefaultUserRoleMapperImpl;
+
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+
+/**
+ * Class to hold constants
+ */
+final public class Constants {
+    public static final int ROLE_MAPPING_DEFAULT_MAX_THREADS = 30;
+    public static final int ROLE_MAPPING_DEFAULT_MIN_THREADS = 10;
+    public static final int ROLE_MAPPING_DEFAULT_IDLE_TIMEOUT_MS = 300 * 1000; // 5 min
+    public static final int JETTY_PORT = 9944;
+
+    /**
+     * Class name for mapper class.
+     */
+    public static final String ROLE_MAPPER_CLASS = &quot;rolemapper.class.name&quot;;
+    /**
+     * S3 Bucket for the role mapping file.
+     */
+    public static final String ROLE_MAPPING_S3_BUCKET = &quot;rolemapper.s3.bucket&quot;;
+    /**
+     * S3 Bucket for the role mapping file.
+     */
+    public static final String ROLE_MAPPING_MAX_THREADS = &quot;rolemapper.max.threads&quot;;
+    /**
+     * S3 Bucket for the role mapping file.
+     */
+    public static final String ROLE_MAPPING_MIN_THREADS = &quot;rolemapper.min.threads&quot;;
+    /**
+     * Key for the role mapping file.
+     */
+    public static final String ROLE_MAPPING_S3_KEY = &quot;rolemapper.s3.key&quot;;
+    /**
+     * Duration in mins to check for new mapping.
+     */
+    public static final String ROLE_MAPPPING_REFRESH_INTERVAL_MIN = &quot;rolemapper.refresh.interval.minutes&quot;;
+
+    public static final String ROLE_MAPPPING_DEFAULT_REFRESH_INTERVAL_MIN = &quot;5&quot;;
+
+    public static final int ROLE_MAPPING_MIN_REFRESH_INTERVAL_MIN = 1;
+
+    /**
+     * Default S3 Mapper Impl for JSON format.
+     */
+<span class="nc" id="L52">    public static final String ROLE_MAPPING_DEFAULT_CLASSNAME = DefaultUserRoleMapperImpl.class.getName();</span>
+    /**
+     * Constants related with joda DateTime and JSON
+     */
+    // This format is to match the result from EC2 metadata service call
+    public static final String DATE_TIME_FORMAT_PATTERN = &quot;yyyy-MM-dd'T'HH:mm:ss.SS'Z'&quot;;
+<span class="nc" id="L58">    public static final DateTimeFormatter DATE_TIME_FORMATTER =</span>
+<span class="nc" id="L59">            DateTimeFormatter.ofPattern(DATE_TIME_FORMAT_PATTERN).withZone(ZoneOffset.UTC);</span>
+
+    /**
+     * Strategy for resolving principal i.e. user or group. Set the below to &quot;command&quot; if default strategy is not
+     * working
+     */
+    public static final String PRINCIPAL_RESOLVER_STRATEGY_KEY = &quot;principal.resolver.strategy&quot;;
+
+    // Default Principal resolver implementation using native system calls
+    public static final String DEFAULT_PRINCIPAL_RESOLVER_STRATEGY = &quot;native&quot;;
+
+    private Constants() {
+    }
+
+    /**
+     * Networking related constants
+     */
+<span class="nc" id="L76">    public static class Network {</span>
+        /**
+         * Hex value of 127.0.0.1 in /proc/net/tcp file in reverse byte order
+         */
+        public static final String IPV4_LOCALHOST_ADDR_IN_HEX_REVERSED_BYTE_ORDER = &quot;0100007F&quot;;
+
+        /**
+         * Hex value of 160 in /proc/net/tcp file in reverse byte order
+         */
+        public static final String IPV4_IMDS_ADDR_IN_HEX_REVERSED_BYTE_ORDER = &quot;FEA9FEA9&quot;;
+
+        /**
+         * Hex value of 160 in /proc/net/tcp file in reverse byte order
+         */
+        public static final String IPV6_IMDS_ADDR_IN_HEX_REVERSED_BYTE_ORDER = &quot;0000000000000000FFFF0000FEA9FEA9&quot;;
+
+        /**
+         * /proc/net/tcp filepath. Make it result of function call so compiler does not inline the value.
+         * This way we can override during unit testing.
+         */
+<span class="nc" id="L96">        public static final String MODULE_PROC_NET_TCP_PATH = String.valueOf(&quot;/proc/net/tcp&quot;);</span>
+
+        /**
+         * /proc/net/tcp6 filepath. Make it result of function call so compiler does not inline the value.
+         * This way we can override during unit testing.
+         */
+<span class="nc" id="L102">        public static final String MODULE_PROC_NET_TCP6_PATH = String.valueOf(&quot;/proc/net/tcp6&quot;);</span>
+    }
+
+    /**
+     * Linux related constants
+     */
+<span class="nc" id="L108">    public static class Linux {</span>
+
+        // /proc related constants.
+<span class="nc" id="L111">        public static class Proc {</span>
+            // Connection state used in /proc/net/tcp and /proc/net/tcp6 files.
+            public static final int TCP_STATE_ESTABLISHED = 1;
+        }
+    }
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
