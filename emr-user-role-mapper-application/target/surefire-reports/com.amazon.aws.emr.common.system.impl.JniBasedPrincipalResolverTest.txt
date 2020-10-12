@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 Test set: com.amazon.aws.emr.common.system.impl.JniBasedPrincipalResolverTest
 -------------------------------------------------------------------------------
-Tests run: 4, Failures: 0, Errors: 4, Skipped: 0, Time elapsed: 0.946 sec <<< FAILURE!
-staleGroupMapping_shouldGetRefreshed(com.amazon.aws.emr.common.system.impl.JniBasedPrincipalResolverTest)  Time elapsed: 0.774 sec  <<< ERROR!
+Tests run: 4, Failures: 0, Errors: 4, Skipped: 0, Time elapsed: 0.548 sec <<< FAILURE!
+staleGroupMapping_shouldGetRefreshed(com.amazon.aws.emr.common.system.impl.JniBasedPrincipalResolverTest)  Time elapsed: 0.446 sec  <<< ERROR!
 org.mockito.exceptions.base.MockitoException: 
 Mockito cannot mock this class: class com.amazon.aws.emr.common.system.impl.JniBasedPrincipalResolver.
 
@@ -83,7 +83,7 @@ Caused by: java.lang.IllegalArgumentException: Unknown Java version: 11
 	at net.bytebuddy.dynamic.loading.ClassLoadingStrategy$Default$InjectionDispatcher.load(ClassLoadingStrategy.java:184)
 	... 46 more
 
-validUsername_returnsCorrespondingGroups(com.amazon.aws.emr.common.system.impl.JniBasedPrincipalResolverTest)  Time elapsed: 0.066 sec  <<< ERROR!
+validUsername_returnsCorrespondingGroups(com.amazon.aws.emr.common.system.impl.JniBasedPrincipalResolverTest)  Time elapsed: 0.039 sec  <<< ERROR!
 org.mockito.exceptions.base.MockitoException: 
 Mockito cannot mock this class: class com.amazon.aws.emr.common.system.impl.JniBasedPrincipalResolver.
 
@@ -164,7 +164,7 @@ Caused by: java.lang.IllegalArgumentException: Unknown Java version: 11
 	at net.bytebuddy.dynamic.loading.ClassLoadingStrategy$Default$InjectionDispatcher.load(ClassLoadingStrategy.java:184)
 	... 46 more
 
-validUid_returnsCorrespondingUsername(com.amazon.aws.emr.common.system.impl.JniBasedPrincipalResolverTest)  Time elapsed: 0.061 sec  <<< ERROR!
+validUid_returnsCorrespondingUsername(com.amazon.aws.emr.common.system.impl.JniBasedPrincipalResolverTest)  Time elapsed: 0.033 sec  <<< ERROR!
 org.mockito.exceptions.base.MockitoException: 
 Mockito cannot mock this class: class com.amazon.aws.emr.common.system.impl.JniBasedPrincipalResolver.
 
@@ -245,7 +245,7 @@ Caused by: java.lang.IllegalArgumentException: Unknown Java version: 11
 	at net.bytebuddy.dynamic.loading.ClassLoadingStrategy$Default$InjectionDispatcher.load(ClassLoadingStrategy.java:184)
 	... 46 more
 
-subsequentRetrieveGroupsCall_returnGroupsFromCache(com.amazon.aws.emr.common.system.impl.JniBasedPrincipalResolverTest)  Time elapsed: 0.043 sec  <<< ERROR!
+subsequentRetrieveGroupsCall_returnGroupsFromCache(com.amazon.aws.emr.common.system.impl.JniBasedPrincipalResolverTest)  Time elapsed: 0.029 sec  <<< ERROR!
 org.mockito.exceptions.base.MockitoException: 
 Mockito cannot mock this class: class com.amazon.aws.emr.common.system.impl.JniBasedPrincipalResolver.
 

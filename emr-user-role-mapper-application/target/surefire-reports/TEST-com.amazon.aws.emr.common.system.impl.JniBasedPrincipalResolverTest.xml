@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuite tests="4" failures="0" name="com.amazon.aws.emr.common.system.impl.JniBasedPrincipalResolverTest" time="0.944" errors="4" skipped="0">
+<testsuite tests="4" failures="0" name="com.amazon.aws.emr.common.system.impl.JniBasedPrincipalResolverTest" time="0.547" errors="4" skipped="0">
   <properties>
     <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
     <property name="java.vm.version" value="11.0.8+10-post-Ubuntu-0ubuntu120.04"/>
@@ -43,7 +43,7 @@
     <property name="java.class.path" value="/usr/share/maven/boot/plexus-classworlds-2.x.jar"/>
     <property name="java.vm.specification.version" value="11"/>
     <property name="sun.arch.data.model" value="64"/>
-    <property name="sun.java.command" value="org.codehaus.plexus.classworlds.launcher.Launcher clean install"/>
+    <property name="sun.java.command" value="org.codehaus.plexus.classworlds.launcher.Launcher clean package"/>
     <property name="java.home" value="/usr/lib/jvm/java-11-openjdk-amd64"/>
     <property name="user.language" value="en"/>
     <property name="java.specification.vendor" value="Oracle Corporation"/>
@@ -61,7 +61,7 @@
     <property name="sun.desktop" value="gnome"/>
     <property name="sun.cpu.isalist" value=""/>
   </properties>
-  <testcase classname="com.amazon.aws.emr.common.system.impl.JniBasedPrincipalResolverTest" name="staleGroupMapping_shouldGetRefreshed" time="0.774">
+  <testcase classname="com.amazon.aws.emr.common.system.impl.JniBasedPrincipalResolverTest" name="staleGroupMapping_shouldGetRefreshed" time="0.446">
     <error message="
 Mockito cannot mock this class: class com.amazon.aws.emr.common.system.impl.JniBasedPrincipalResolver.
 
@@ -160,7 +160,7 @@ Caused by: java.lang.IllegalArgumentException: Unknown Java version: 11
 	... 46 more
 </error>
   </testcase>
-  <testcase classname="com.amazon.aws.emr.common.system.impl.JniBasedPrincipalResolverTest" name="validUsername_returnsCorrespondingGroups" time="0.066">
+  <testcase classname="com.amazon.aws.emr.common.system.impl.JniBasedPrincipalResolverTest" name="validUsername_returnsCorrespondingGroups" time="0.039">
     <error message="
 Mockito cannot mock this class: class com.amazon.aws.emr.common.system.impl.JniBasedPrincipalResolver.
 
@@ -259,7 +259,7 @@ Caused by: java.lang.IllegalArgumentException: Unknown Java version: 11
 	... 46 more
 </error>
   </testcase>
-  <testcase classname="com.amazon.aws.emr.common.system.impl.JniBasedPrincipalResolverTest" name="validUid_returnsCorrespondingUsername" time="0.061">
+  <testcase classname="com.amazon.aws.emr.common.system.impl.JniBasedPrincipalResolverTest" name="validUid_returnsCorrespondingUsername" time="0.033">
     <error message="
 Mockito cannot mock this class: class com.amazon.aws.emr.common.system.impl.JniBasedPrincipalResolver.
 
@@ -358,7 +358,7 @@ Caused by: java.lang.IllegalArgumentException: Unknown Java version: 11
 	... 46 more
 </error>
   </testcase>
-  <testcase classname="com.amazon.aws.emr.common.system.impl.JniBasedPrincipalResolverTest" name="subsequentRetrieveGroupsCall_returnGroupsFromCache" time="0.043">
+  <testcase classname="com.amazon.aws.emr.common.system.impl.JniBasedPrincipalResolverTest" name="subsequentRetrieveGroupsCall_returnGroupsFromCache" time="0.029">
     <error message="
 Mockito cannot mock this class: class com.amazon.aws.emr.common.system.impl.JniBasedPrincipalResolver.
 
