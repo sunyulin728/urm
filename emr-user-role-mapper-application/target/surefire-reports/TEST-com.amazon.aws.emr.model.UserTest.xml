@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuite tests="2" failures="0" name="com.amazon.aws.emr.model.UserTest" time="0.155" errors="0" skipped="0">
+<testsuite tests="2" failures="0" name="com.amazon.aws.emr.model.UserTest" time="0.271" errors="0" skipped="0">
   <properties>
     <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
     <property name="java.vm.version" value="11.0.8+10-post-Ubuntu-0ubuntu120.04"/>
@@ -63,6 +63,6 @@
     <property name="sun.desktop" value="gnome"/>
     <property name="sun.cpu.isalist" value=""/>
   </properties>
-  <testcase classname="com.amazon.aws.emr.model.UserTest" name="invalid_creation_throws" time="0.151"/>
+  <testcase classname="com.amazon.aws.emr.model.UserTest" name="invalid_creation_throws" time="0.267"/>
   <testcase classname="com.amazon.aws.emr.model.UserTest" name="valid_format_succeeds" time="0.004"/>
 </testsuite>

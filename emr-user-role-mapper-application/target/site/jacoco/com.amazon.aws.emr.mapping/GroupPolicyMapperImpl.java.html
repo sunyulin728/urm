@@ -57,22 +57,23 @@ public class GroupPolicyMapperImpl implements UserRoleMapperProvider {
     private String bucketName;
     private String key;
     private String etag;
+    private String adminRoleArn;
     private PrincipalResolver principalResolver;
 
-<span class="nc" id="L62">    public GroupPolicyMapperImpl(String bucketName, String key, PrincipalResolver principalResolver) {</span>
-<span class="nc" id="L63">        this.bucketName = Objects.requireNonNull(bucketName);</span>
+<span class="nc" id="L63">    public GroupPolicyMapperImpl(String bucketName, String key, PrincipalResolver principalResolver) {</span>
+<span class="nc" id="L64">        this.bucketName = Objects.requireNonNull(bucketName);</span>
 
         // TODO: We may relax this to allow null value. In case of null value, parse all keys under above bucket
-<span class="nc" id="L66">        this.key = Objects.requireNonNull(key);</span>
-<span class="nc" id="L67">        this.etag = null;</span>
-<span class="nc" id="L68">        this.principalResolver = Objects.requireNonNull(principalResolver);</span>
-<span class="nc" id="L69">    }</span>
+<span class="nc" id="L67">        this.key = Objects.requireNonNull(key);</span>
+<span class="nc" id="L68">        this.etag = null;</span>
+<span class="nc" id="L69">        this.principalResolver = Objects.requireNonNull(principalResolver);</span>
+<span class="nc" id="L70">    }</span>
 
     /**
      * Inits the mapper.
      */
     public void init() {
-<span class="nc" id="L75">    }</span>
+<span class="nc" id="L76">    }</span>
 
     /**
      * @param username the user whose mapping we want.
@@ -82,34 +83,45 @@ public class GroupPolicyMapperImpl implements UserRoleMapperProvider {
      */
     public Optional&lt;AssumeRoleRequest&gt; getMapping(String username) {
         // Consult if we have a mapping with username
-<span class="nc" id="L85">        AssumeRoleRequest assumeRoleRequest = userRoleMapping.get(username);</span>
-<span class="nc bnc" id="L86" title="All 2 branches missed.">        if (assumeRoleRequest != null) {</span>
-<span class="nc" id="L87">            log.debug(&quot;Usermapping found for {} as {}&quot;, username, assumeRoleRequest);</span>
-<span class="nc" id="L88">            return Optional.of(assumeRoleRequest);</span>
+<span class="nc" id="L86">        AssumeRoleRequest assumeRoleRequest = userRoleMapping.get(username);</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">        if (assumeRoleRequest != null) {</span>
+<span class="nc" id="L88">            log.debug(&quot;Usermapping found for {} as {}&quot;, username, assumeRoleRequest);</span>
+<span class="nc" id="L89">            return Optional.of(assumeRoleRequest);</span>
         }
-<span class="nc" id="L90">        log.debug(&quot;No user mapping found for {}. Checking with group mapping.&quot;, username);</span>
+<span class="nc" id="L91">        log.debug(&quot;No user mapping found for {}. Checking with group mapping.&quot;, username);</span>
 
-<span class="nc" id="L92">        Optional&lt;List&lt;String&gt;&gt; groups = principalResolver.getGroups(username);</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">        if (adminRoleArn == null) {</span>
+<span class="nc" id="L94">            log.debug(&quot;No admin role found.&quot;);</span>
+<span class="nc" id="L95">            return null;</span>
+        }
 
-<span class="nc" id="L94">        HashSet&lt;PolicyDescriptorType&gt; policyarnSet = new HashSet&lt;&gt;();</span>
+<span class="nc" id="L98">        Optional&lt;List&lt;String&gt;&gt; groups = principalResolver.getGroups(username);</span>
 
-<span class="nc bnc" id="L96" title="All 2 branches missed.">        for (String group : groups.orElse(Collections.emptyList())) {</span>
-<span class="nc" id="L97">            String policyarn = groupPolicyarnMapping.get(group);</span>
-<span class="nc bnc" id="L98" title="All 2 branches missed.">            if (policyarn != null) {</span>
-<span class="nc" id="L99">                log.debug(&quot;group mapping found for {} as {}&quot;, group, policyarn);</span>
-<span class="nc" id="L100">                PolicyDescriptorType policy = new PolicyDescriptorType().withArn(policyarn);</span>
-<span class="nc" id="L101">                policyarnSet.add(policy);</span>
+<span class="nc" id="L100">        HashSet&lt;PolicyDescriptorType&gt; policyarnSet = new HashSet&lt;&gt;();</span>
+
+<span class="nc bnc" id="L102" title="All 2 branches missed.">        for (String group : groups.orElse(Collections.emptyList())) {</span>
+<span class="nc" id="L103">            String policyarn = groupPolicyarnMapping.get(group);</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">            if (policyarn != null) {</span>
+<span class="nc" id="L105">                log.debug(&quot;group mapping found for {} as {}&quot;, group, policyarn);</span>
+<span class="nc" id="L106">                PolicyDescriptorType policy = new PolicyDescriptorType().withArn(policyarn);</span>
+<span class="nc" id="L107">                policyarnSet.add(policy);</span>
             }
-<span class="nc" id="L103">        }</span>
+<span class="nc" id="L109">        }</span>
 
-<span class="nc" id="L105">        assumeRoleRequest = new AssumeRoleRequest()</span>
-<span class="nc" id="L106">                .withPolicyArns(policyarnSet)</span>
-<span class="nc" id="L107">                .withRoleSessionName(username); // Use username as session name*/</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">        if (policyarnSet.size() == 0) {</span>
+<span class="nc" id="L112">            log.debug(&quot;No user mapping found for {}. Checking with group mapping.&quot;, username);</span>
+<span class="nc" id="L113">            return null;</span>
+        }
 
-<span class="nc" id="L109">        userRoleMapping.put(username, assumeRoleRequest);</span>
-<span class="nc" id="L110">        log.info(&quot;Mapped {} to {}&quot;, username, assumeRoleRequest);</span>
+<span class="nc" id="L116">        assumeRoleRequest = new AssumeRoleRequest()</span>
+<span class="nc" id="L117">                .withRoleArn(adminRoleArn)</span>
+<span class="nc" id="L118">                .withPolicyArns(policyarnSet)</span>
+<span class="nc" id="L119">                .withRoleSessionName(username); // Use username as session name*/</span>
 
-<span class="nc" id="L112">        return Optional.of(assumeRoleRequest);</span>
+<span class="nc" id="L121">        userRoleMapping.put(username, assumeRoleRequest);</span>
+<span class="nc" id="L122">        log.info(&quot;Mapped {} to {}&quot;, username, assumeRoleRequest);</span>
+
+<span class="nc" id="L124">        return Optional.of(assumeRoleRequest);</span>
     }
 
     /**
@@ -117,37 +129,37 @@ public class GroupPolicyMapperImpl implements UserRoleMapperProvider {
      * If a new mapping is present then reloads mappings in a thread safe manner.
      */
     public void refresh() {
-<span class="nc" id="L120">        log.debug(&quot;Checking if need to load mapping again from S3 from {}/{}&quot;, bucketName, key);</span>
-<span class="nc" id="L121">        ObjectMetadata objectMetadata = s3Client.getObjectMetadata(bucketName, key);</span>
-<span class="nc bnc" id="L122" title="All 2 branches missed.">        if (objectMetadata.getETag().equals(etag)) {</span>
-<span class="nc" id="L123">            log.debug(&quot;Nothing to do as current etag {} matches the last one.&quot;, objectMetadata.getETag());</span>
+<span class="nc" id="L132">        log.debug(&quot;Checking if need to load mapping again from S3 from {}/{}&quot;, bucketName, key);</span>
+<span class="nc" id="L133">        ObjectMetadata objectMetadata = s3Client.getObjectMetadata(bucketName, key);</span>
+<span class="nc bnc" id="L134" title="All 2 branches missed.">        if (objectMetadata.getETag().equals(etag)) {</span>
+<span class="nc" id="L135">            log.debug(&quot;Nothing to do as current etag {} matches the last one.&quot;, objectMetadata.getETag());</span>
         } else {
-<span class="nc" id="L125">            log.info(&quot;Seems we have new mapping - reload it.&quot;);</span>
-<span class="nc" id="L126">            readMapping();</span>
-<span class="nc" id="L127">            log.info(&quot;Done with the reload.&quot;);</span>
+<span class="nc" id="L137">            log.info(&quot;Seems we have new mapping - reload it.&quot;);</span>
+<span class="nc" id="L138">            readMapping();</span>
+<span class="nc" id="L139">            log.info(&quot;Done with the reload.&quot;);</span>
         }
-<span class="nc" id="L129">    }</span>
+<span class="nc" id="L141">    }</span>
 
     private void readMapping() {
-<span class="nc" id="L132">        log.info(&quot;Load the mapping from S3 from {}/{}&quot;, bucketName, key);</span>
-<span class="nc" id="L133">        try (S3Object s3object = s3Client.getObject(new GetObjectRequest(</span>
+<span class="nc" id="L144">        log.info(&quot;Load the mapping from S3 from {}/{}&quot;, bucketName, key);</span>
+<span class="nc" id="L145">        try (S3Object s3object = s3Client.getObject(new GetObjectRequest(</span>
                 bucketName, key))){
-<span class="nc" id="L135">            S3ObjectInputStream s3InputStream = s3object.getObjectContent();</span>
-<span class="nc" id="L136">            String jsonString = null;</span>
+<span class="nc" id="L147">            S3ObjectInputStream s3InputStream = s3object.getObjectContent();</span>
+<span class="nc" id="L148">            String jsonString = null;</span>
             try {
-<span class="nc" id="L138">                jsonString = getS3FileAsString(s3InputStream);</span>
-<span class="nc" id="L139">            } catch (IOException e) {</span>
-<span class="nc" id="L140">                throw new RuntimeException(&quot;Could not fetch the mapping file from S3.&quot;);</span>
-<span class="nc" id="L141">            }</span>
+<span class="nc" id="L150">                jsonString = getS3FileAsString(s3InputStream);</span>
+<span class="nc" id="L151">            } catch (IOException e) {</span>
+<span class="nc" id="L152">                throw new RuntimeException(&quot;Could not fetch the mapping file from S3.&quot;);</span>
+<span class="nc" id="L153">            }</span>
             // Update the ETag
-<span class="nc" id="L143">            etag = s3object.getObjectMetadata().getETag();</span>
-<span class="nc" id="L144">            populateMaps(jsonString);</span>
-<span class="nc" id="L145">        } catch (AmazonClientException ace) {</span>
-<span class="nc" id="L146">            log.error(&quot;AWS exception {}&quot;, ace.getMessage(), ace);</span>
-<span class="nc" id="L147">        } catch (IOException e) {</span>
-<span class="nc" id="L148">            log.error(&quot;Could not load mapping from S3&quot;, e);</span>
-<span class="nc" id="L149">        }</span>
-<span class="nc" id="L150">    }</span>
+<span class="nc" id="L155">            etag = s3object.getObjectMetadata().getETag();</span>
+<span class="nc" id="L156">            populateMaps(jsonString);</span>
+<span class="nc" id="L157">        } catch (AmazonClientException ace) {</span>
+<span class="nc" id="L158">            log.error(&quot;AWS exception {}&quot;, ace.getMessage(), ace);</span>
+<span class="nc" id="L159">        } catch (IOException e) {</span>
+<span class="nc" id="L160">            log.error(&quot;Could not load mapping from S3&quot;, e);</span>
+<span class="nc" id="L161">        }</span>
+<span class="nc" id="L162">    }</span>
 
     /**
      * Populates the internal maps with the mapping in S3.
@@ -156,45 +168,50 @@ public class GroupPolicyMapperImpl implements UserRoleMapperProvider {
      * @param jsonString the S3 JSON represented as a String.
      */
     private void populateMaps(String jsonString) {
-<span class="nc" id="L159">        log.info(&quot;Received the following JSON {}&quot;, jsonString);</span>
-<span class="nc" id="L160">        PrincipalRoleMappings principalRoleMappings = GSON.fromJson(jsonString, PrincipalRoleMappings.class);</span>
+<span class="nc" id="L171">        log.info(&quot;Received the following JSON {}&quot;, jsonString);</span>
+<span class="nc" id="L172">        PrincipalRoleMappings principalRoleMappings = GSON.fromJson(jsonString, PrincipalRoleMappings.class);</span>
         // Clear the old mapping now since we found a new valid mapping!
-<span class="nc" id="L162">        groupPolicyarnMapping.clear();</span>
-<span class="nc" id="L163">        userRoleMapping.clear();</span>
+<span class="nc" id="L174">        groupPolicyarnMapping.clear();</span>
+<span class="nc" id="L175">        userRoleMapping.clear();</span>
 
-<span class="nc bnc" id="L165" title="All 2 branches missed.">        for (PrincipalRoleMapping principalRoleMapping : principalRoleMappings.getPrincipalRoleMappings()) {</span>
-<span class="nc bnc" id="L166" title="All 2 branches missed.">            if (principalRoleMapping == null) {</span>
-<span class="nc" id="L167">                log.info(&quot;Invalid record!&quot;);</span>
-<span class="nc" id="L168">                continue;</span>
-            }
-<span class="nc" id="L170">            String principal = principalRoleMapping.getGroupname();</span>
-<span class="nc bnc" id="L171" title="All 2 branches missed.">            if (principal == null) {</span>
-<span class="nc" id="L172">                log.info(&quot;Invalid record containing no groupname&quot;);</span>
-<span class="nc" id="L173">                continue;</span>
-            }
+<span class="nc bnc" id="L177" title="All 2 branches missed.">        for (PrincipalRoleMapping principalRoleMapping : principalRoleMappings.getPrincipalRoleMappings()) {</span>
+<span class="nc" id="L178">            String admin = principalRoleMapping.getAdminRoleArn();</span>
+<span class="nc bnc" id="L179" title="All 2 branches missed.">            if (adminRoleArn == null) {</span>
+<span class="nc bnc" id="L180" title="All 2 branches missed.">                if (principalRoleMapping == null) {</span>
+<span class="nc" id="L181">                    log.info(&quot;Invalid record!&quot;);</span>
+<span class="nc" id="L182">                    continue;</span>
+                }
+<span class="nc" id="L184">                String principal = principalRoleMapping.getGroupname();</span>
+<span class="nc bnc" id="L185" title="All 2 branches missed.">                if (principal == null) {</span>
+<span class="nc" id="L186">                    log.info(&quot;Invalid record containing no groupname&quot;);</span>
+<span class="nc" id="L187">                    continue;</span>
+                }
 
-<span class="nc" id="L176">            String policyArn = principalRoleMapping.getPolicyArn();</span>
-<span class="nc bnc" id="L177" title="All 2 branches missed.">            if (policyArn == null) {</span>
-<span class="nc" id="L178">                log.info(&quot;Invalid record containing no policyArn&quot;);</span>
-<span class="nc" id="L179">                continue;</span>
-            }
+<span class="nc" id="L190">                String policyArn = principalRoleMapping.getPolicyArn();</span>
+<span class="nc bnc" id="L191" title="All 2 branches missed.">                if (policyArn == null) {</span>
+<span class="nc" id="L192">                    log.info(&quot;Invalid record containing no policyArn&quot;);</span>
+<span class="nc" id="L193">                    continue;</span>
+                }
 
-<span class="nc" id="L182">            groupPolicyarnMapping.put(principal, policyArn);</span>
-<span class="nc" id="L183">            log.info(&quot;Mapped {} to {}&quot;, principal, policyArn);</span>
+<span class="nc" id="L196">                groupPolicyarnMapping.put(principal, policyArn);</span>
+<span class="nc" id="L197">                log.info(&quot;Mapped {} to {}&quot;, principal, policyArn);</span>
+<span class="nc" id="L198">            } else {</span>
+<span class="nc" id="L199">                adminRoleArn = admin;</span>
+            }
         }
-<span class="nc" id="L185">    }</span>
+<span class="nc" id="L202">    }</span>
 
     private static String getS3FileAsString(InputStream is) throws IOException {
-<span class="nc bnc" id="L188" title="All 2 branches missed.">        if (is == null)</span>
-<span class="nc" id="L189">            return null;</span>
-<span class="nc" id="L190">        StringBuilder sb = new StringBuilder();</span>
-<span class="nc" id="L191">        try (BufferedReader reader = new BufferedReader(</span>
+<span class="nc bnc" id="L205" title="All 2 branches missed.">        if (is == null)</span>
+<span class="nc" id="L206">            return null;</span>
+<span class="nc" id="L207">        StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L208">        try (BufferedReader reader = new BufferedReader(</span>
                 new InputStreamReader(is, StandardCharsets.UTF_8))) {
             String line;
-<span class="nc bnc" id="L194" title="All 2 branches missed.">            while ((line = reader.readLine()) != null) {</span>
-<span class="nc" id="L195">                sb.append(line);</span>
+<span class="nc bnc" id="L211" title="All 2 branches missed.">            while ((line = reader.readLine()) != null) {</span>
+<span class="nc" id="L212">                sb.append(line);</span>
             }
-<span class="nc" id="L197">            return sb.toString();</span>
+<span class="nc" id="L214">            return sb.toString();</span>
         }
     }
 }

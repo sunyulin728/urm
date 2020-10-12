@@ -33,6 +33,9 @@ public class PrincipalRoleMapping {
     @SerializedName("policyarn")
     private String policyArn;
 
+    @SerializedName("adminrolearn")
+    private String adminRoleArn;
+
     @SerializedName("textpolicy")
     private String policy;
 

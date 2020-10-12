@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 <span class="pc" id="L12">@Builder</span>
 <span class="fc" id="L13">@AllArgsConstructor</span>
 <span class="fc" id="L14">@NoArgsConstructor</span>
-<span class="pc bpc" id="L15" title="59 of 94 branches missed.">@Data</span>
+<span class="pc bpc" id="L15" title="65 of 102 branches missed.">@Data</span>
 public class PrincipalRoleMapping {
 
     @SerializedName(&quot;username&quot;)
@@ -33,19 +33,22 @@ public class PrincipalRoleMapping {
     @SerializedName(&quot;policyarn&quot;)
 <span class="fc" id="L34">    private String policyArn;</span>
 
+    @SerializedName(&quot;adminrolearn&quot;)
+<span class="fc" id="L37">    private String adminRoleArn;</span>
+
     @SerializedName(&quot;textpolicy&quot;)
-<span class="fc" id="L37">    private String policy;</span>
+<span class="fc" id="L40">    private String policy;</span>
 
     @SerializedName(&quot;duration&quot;)
-<span class="fc" id="L40">    private Integer durationSeconds;</span>
+<span class="fc" id="L43">    private Integer durationSeconds;</span>
 
     @SerializedName(&quot;externalid&quot;)
-<span class="fc" id="L43">    private String externalId;</span>
+<span class="fc" id="L46">    private String externalId;</span>
 
     @SerializedName(&quot;serialnumber&quot;)
-<span class="fc" id="L46">    private String serialNumber;</span>
+<span class="fc" id="L49">    private String serialNumber;</span>
 
     @SerializedName(&quot;tokencode&quot;)
-<span class="fc" id="L49">    private String tokenCode;</span>
+<span class="fc" id="L52">    private String tokenCode;</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

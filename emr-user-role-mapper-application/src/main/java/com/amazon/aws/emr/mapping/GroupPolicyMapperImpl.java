@@ -57,6 +57,7 @@ public class GroupPolicyMapperImpl implements UserRoleMapperProvider {
     private String bucketName;
     private String key;
     private String etag;
+    private String adminRoleArn;
     private PrincipalResolver principalResolver;
 
     public GroupPolicyMapperImpl(String bucketName, String key, PrincipalResolver principalResolver) {
@@ -89,6 +90,11 @@ public class GroupPolicyMapperImpl implements UserRoleMapperProvider {
         }
         log.debug("No user mapping found for {}. Checking with group mapping.", username);
 
+        if (adminRoleArn == null) {
+            log.debug("No admin role found.");
+            return null;
+        }
+
         Optional<List<String>> groups = principalResolver.getGroups(username);
 
         HashSet<PolicyDescriptorType> policyarnSet = new HashSet<>();
@@ -102,7 +108,13 @@ public class GroupPolicyMapperImpl implements UserRoleMapperProvider {
             }
         }
 
+        if (policyarnSet.size() == 0) {
+            log.debug("No user mapping found for {}. Checking with group mapping.", username);
+            return null;
+        }
+
         assumeRoleRequest = new AssumeRoleRequest()
+                .withRoleArn(adminRoleArn)
                 .withPolicyArns(policyarnSet)
                 .withRoleSessionName(username); // Use username as session name*/
 
@@ -163,24 +175,29 @@ public class GroupPolicyMapperImpl implements UserRoleMapperProvider {
         userRoleMapping.clear();
 
         for (PrincipalRoleMapping principalRoleMapping : principalRoleMappings.getPrincipalRoleMappings()) {
-            if (principalRoleMapping == null) {
-                log.info("Invalid record!");
-                continue;
-            }
-            String principal = principalRoleMapping.getGroupname();
-            if (principal == null) {
-                log.info("Invalid record containing no groupname");
-                continue;
-            }
+            String admin = principalRoleMapping.getAdminRoleArn();
+            if (adminRoleArn == null) {
+                if (principalRoleMapping == null) {
+                    log.info("Invalid record!");
+                    continue;
+                }
+                String principal = principalRoleMapping.getGroupname();
+                if (principal == null) {
+                    log.info("Invalid record containing no groupname");
+                    continue;
+                }
 
-            String policyArn = principalRoleMapping.getPolicyArn();
-            if (policyArn == null) {
-                log.info("Invalid record containing no policyArn");
-                continue;
-            }
+                String policyArn = principalRoleMapping.getPolicyArn();
+                if (policyArn == null) {
+                    log.info("Invalid record containing no policyArn");
+                    continue;
+                }
 
-            groupPolicyarnMapping.put(principal, policyArn);
-            log.info("Mapped {} to {}", principal, policyArn);
+                groupPolicyarnMapping.put(principal, policyArn);
+                log.info("Mapped {} to {}", principal, policyArn);
+            } else {
+                adminRoleArn = admin;
+            }
         }
     }
 
