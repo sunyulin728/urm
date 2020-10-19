@@ -4,6 +4,7 @@
 package com.amazon.aws.emr.common;
 
 import com.amazon.aws.emr.mapping.DefaultUserRoleMapperImpl;
+import com.amazon.aws.emr.mapping.GroupPolicyMapperImpl;
 
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -49,7 +50,7 @@ final public class Constants {
     /**
      * Default S3 Mapper Impl for JSON format.
      */
-    public static final String ROLE_MAPPING_DEFAULT_CLASSNAME = DefaultUserRoleMapperImpl.class.getName();
+    public static final String ROLE_MAPPING_DEFAULT_CLASSNAME = GroupPolicyMapperImpl.class.getName();
     /**
      * Constants related with joda DateTime and JSON
      */

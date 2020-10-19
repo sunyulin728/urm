@@ -4,6 +4,7 @@
 package com.amazon.aws.emr.common;
 
 import com.amazon.aws.emr.mapping.DefaultUserRoleMapperImpl;
+import com.amazon.aws.emr.mapping.GroupPolicyMapperImpl;
 
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -49,14 +50,14 @@ final public class Constants {
     /**
      * Default S3 Mapper Impl for JSON format.
      */
-<span class="nc" id="L52">    public static final String ROLE_MAPPING_DEFAULT_CLASSNAME = DefaultUserRoleMapperImpl.class.getName();</span>
+<span class="nc" id="L53">    public static final String ROLE_MAPPING_DEFAULT_CLASSNAME = GroupPolicyMapperImpl.class.getName();</span>
     /**
      * Constants related with joda DateTime and JSON
      */
     // This format is to match the result from EC2 metadata service call
     public static final String DATE_TIME_FORMAT_PATTERN = &quot;yyyy-MM-dd'T'HH:mm:ss.SS'Z'&quot;;
-<span class="nc" id="L58">    public static final DateTimeFormatter DATE_TIME_FORMATTER =</span>
-<span class="nc" id="L59">            DateTimeFormatter.ofPattern(DATE_TIME_FORMAT_PATTERN).withZone(ZoneOffset.UTC);</span>
+<span class="nc" id="L59">    public static final DateTimeFormatter DATE_TIME_FORMATTER =</span>
+<span class="nc" id="L60">            DateTimeFormatter.ofPattern(DATE_TIME_FORMAT_PATTERN).withZone(ZoneOffset.UTC);</span>
 
     /**
      * Strategy for resolving principal i.e. user or group. Set the below to &quot;command&quot; if default strategy is not
@@ -73,7 +74,7 @@ final public class Constants {
     /**
      * Networking related constants
      */
-<span class="nc" id="L76">    public static class Network {</span>
+<span class="nc" id="L77">    public static class Network {</span>
         /**
          * Hex value of 127.0.0.1 in /proc/net/tcp file in reverse byte order
          */
@@ -93,22 +94,22 @@ final public class Constants {
          * /proc/net/tcp filepath. Make it result of function call so compiler does not inline the value.
          * This way we can override during unit testing.
          */
-<span class="nc" id="L96">        public static final String MODULE_PROC_NET_TCP_PATH = String.valueOf(&quot;/proc/net/tcp&quot;);</span>
+<span class="nc" id="L97">        public static final String MODULE_PROC_NET_TCP_PATH = String.valueOf(&quot;/proc/net/tcp&quot;);</span>
 
         /**
          * /proc/net/tcp6 filepath. Make it result of function call so compiler does not inline the value.
          * This way we can override during unit testing.
          */
-<span class="nc" id="L102">        public static final String MODULE_PROC_NET_TCP6_PATH = String.valueOf(&quot;/proc/net/tcp6&quot;);</span>
+<span class="nc" id="L103">        public static final String MODULE_PROC_NET_TCP6_PATH = String.valueOf(&quot;/proc/net/tcp6&quot;);</span>
     }
 
     /**
      * Linux related constants
      */
-<span class="nc" id="L108">    public static class Linux {</span>
+<span class="nc" id="L109">    public static class Linux {</span>
 
         // /proc related constants.
-<span class="nc" id="L111">        public static class Proc {</span>
+<span class="nc" id="L112">        public static class Proc {</span>
             // Connection state used in /proc/net/tcp and /proc/net/tcp6 files.
             public static final int TCP_STATE_ESTABLISHED = 1;
         }
