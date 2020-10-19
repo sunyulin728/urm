@@ -129,10 +129,10 @@ public class GroupPolicyMapperImpl implements UserRoleMapperProvider {
      * If a new mapping is present then reloads mappings in a thread safe manner.
      */
     public void refresh() {
-        log.debug("Checking if need to load mapping again from S3 from {}/{}", bucketName, key);
+        log.info("Checking if need to load mapping again from S3 from {}/{}", bucketName, key);
         ObjectMetadata objectMetadata = s3Client.getObjectMetadata(bucketName, key);
         if (objectMetadata.getETag().equals(etag)) {
-            log.debug("Nothing to do as current etag {} matches the last one.", objectMetadata.getETag());
+            log.info("Nothing to do as current etag {} matches the last one.", objectMetadata.getETag());
         } else {
             log.info("Seems we have new mapping - reload it.");
             readMapping();

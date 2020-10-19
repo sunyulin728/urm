@@ -2,7 +2,7 @@ GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_
 Amazon EMR User Role Mapper Application,com.amazon.aws.emr.common.system.factory,PrincipalResolverFactory,30,0,2,0,9,0,5,0,4,0
 Amazon EMR User Role Mapper Application,com.amazon.aws.emr.mapping,GroupPolicyMapperImpl,369,0,26,0,97,0,22,0,9,0
 Amazon EMR User Role Mapper Application,com.amazon.aws.emr.mapping,DefaultUserRoleMapperImpl,348,0,22,0,88,0,22,0,11,0
-Amazon EMR User Role Mapper Application,com.amazon.aws.emr.mapping,MappingInvoker,196,0,2,0,48,0,7,0,6,0
+Amazon EMR User Role Mapper Application,com.amazon.aws.emr.mapping,MappingInvoker,197,0,2,0,48,0,7,0,6,0
 Amazon EMR User Role Mapper Application,com.amazon.aws.emr.model,PrincipalRoleMappings,63,6,8,0,0,2,9,2,5,2
 Amazon EMR User Role Mapper Application,com.amazon.aws.emr.model,PrincipalRoleMapping,325,274,65,37,0,16,52,30,6,25
 Amazon EMR User Role Mapper Application,com.amazon.aws.emr.model,Group.GroupBuilder,22,28,0,0,0,1,1,5,1,5

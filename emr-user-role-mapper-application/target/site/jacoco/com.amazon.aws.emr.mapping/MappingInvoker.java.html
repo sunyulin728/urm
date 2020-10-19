@@ -53,7 +53,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
         try {
 <span class="nc" id="L54">            String className = applicationConfiguration.getProperty(Constants.ROLE_MAPPER_CLASS,</span>
                     Constants.ROLE_MAPPING_DEFAULT_CLASSNAME);
-<span class="nc" id="L56">            log.info(&quot;Trying to load {}&quot;, className);</span>
+<span class="nc" id="L56">            log.info(&quot;Trying to load {}, default is {}&quot;, className, Constants.ROLE_MAPPING_DEFAULT_CLASSNAME);</span>
 <span class="nc bnc" id="L57" title="All 2 branches missed.">            if (className.equals(Constants.ROLE_MAPPING_DEFAULT_CLASSNAME)) {</span>
                 // For our default mapper implementation we need at least the S3 bucket name and key
 <span class="nc" id="L59">                Constructor c = Class.forName(className)</span>
