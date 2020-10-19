@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 Test set: com.amazon.aws.emr.common.system.impl.CommandBasedPrincipalResolverTest
 -------------------------------------------------------------------------------
-Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.084 sec <<< FAILURE!
-initializationError(com.amazon.aws.emr.common.system.impl.CommandBasedPrincipalResolverTest)  Time elapsed: 0.001 sec  <<< ERROR!
+Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.132 sec <<< FAILURE!
+initializationError(com.amazon.aws.emr.common.system.impl.CommandBasedPrincipalResolverTest)  Time elapsed: 0.002 sec  <<< ERROR!
 org.objenesis.ObjenesisException: java.lang.reflect.InvocationTargetException
 	at org.objenesis.instantiator.sun.SunReflectionFactoryHelper.newConstructorForSerialization(SunReflectionFactoryHelper.java:54)
 	at org.objenesis.instantiator.sun.SunReflectionFactoryInstantiator.<init>(SunReflectionFactoryInstantiator.java:41)

@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 Test set: com.amazon.aws.emr.api.MetadataControllerTest
 -------------------------------------------------------------------------------
-Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.68 sec <<< FAILURE!
-initializationError(com.amazon.aws.emr.api.MetadataControllerTest)  Time elapsed: 0.006 sec  <<< ERROR!
+Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 1.013 sec <<< FAILURE!
+initializationError(com.amazon.aws.emr.api.MetadataControllerTest)  Time elapsed: 0.007 sec  <<< ERROR!
 org.objenesis.ObjenesisException: java.lang.reflect.InvocationTargetException
 	at org.objenesis.instantiator.sun.SunReflectionFactoryHelper.newConstructorForSerialization(SunReflectionFactoryHelper.java:54)
 	at org.objenesis.instantiator.sun.SunReflectionFactoryInstantiator.<init>(SunReflectionFactoryInstantiator.java:41)

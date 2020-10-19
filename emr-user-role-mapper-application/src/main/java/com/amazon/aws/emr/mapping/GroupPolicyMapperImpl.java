@@ -175,12 +175,13 @@ public class GroupPolicyMapperImpl implements UserRoleMapperProvider {
         userRoleMapping.clear();
 
         for (PrincipalRoleMapping principalRoleMapping : principalRoleMappings.getPrincipalRoleMappings()) {
+            if (principalRoleMapping == null) {
+                log.info("Invalid record!");
+                continue;
+            }
+
             String admin = principalRoleMapping.getAdminRoleArn();
-            if (adminRoleArn == null) {
-                if (principalRoleMapping == null) {
-                    log.info("Invalid record!");
-                    continue;
-                }
+            if (admin == null) {
                 String principal = principalRoleMapping.getGroupname();
                 if (principal == null) {
                     log.info("Invalid record containing no groupname");
